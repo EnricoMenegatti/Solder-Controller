@@ -2,7 +2,7 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 
-//DISPLAY-----------------------------------------------------------------------------------------------------------------
+//DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
 //Byte array of bitmap of 76 x 56 px:
 const unsigned char img_logo [] PROGMEM = {
@@ -11,7 +11,10 @@ const unsigned char img_logo [] PROGMEM = {
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 int PWM_pin = 1;
-int level;
+unsigned int level;
+
+//ADC----------------------------------------------------------------------------------------------------------------------
+int ADC_CMD_pin = A2;
   
 void splash()
 {
@@ -41,19 +44,15 @@ void setup()
 
 void loop() 
 {  
-  level = level + 1;
+  level = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
   analogWrite(PWM_pin, level);
 
-  char c_level = char(level);
   char buff[10];
 
-  sprintf(buff, "%d  ", c_level);
+  sprintf(buff, "%d  ", level);
   
   oled.cursorTo(20, 2);
   oled.printString( buff );
-  
-  if(level >= 100)
-    level = 0;
     
   delay(50);
 }
