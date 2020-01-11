@@ -10,11 +10,13 @@ const unsigned char img_logo [] PROGMEM = {
 };
 
 //PWM----------------------------------------------------------------------------------------------------------------------
-int PWM_pin = 1;
-unsigned int level;
+const byte PWM_pin = 1;
+int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
-int ADC_CMD_pin = A2;
+const byte ADC_CMD_pin = A2;
+const byte ADC_TEMP_pin = A3;
+int temp_return;
   
 void splash()
 {
@@ -45,11 +47,12 @@ void setup()
 void loop() 
 {  
   level = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
+  temp_return = analogRead(ADC_TEMP_pin) >> 2;
   analogWrite(PWM_pin, level);
+                                                        
+  char buff[20];
 
-  char buff[10];
-
-  sprintf(buff, "%d  ", level);
+  sprintf(buff, "%d  -  %d  ", level, temp_return);
   
   oled.cursorTo(20, 2);
   oled.printString( buff );
