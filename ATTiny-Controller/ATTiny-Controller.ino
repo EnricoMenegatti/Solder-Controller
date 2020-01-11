@@ -26,6 +26,8 @@ void splash()
 void setup() 
 {
   pinMode(PWM_pin, OUTPUT);
+
+  level = 0;
   
   oled.init(0x3c);
   oled.clear();
@@ -38,10 +40,20 @@ void setup()
 }
 
 void loop() 
-{
-  for(int i = 0; i < 100; i++)
-  {
-    analogWrite(PWM_pin, i);
-    delay(50);
-  }
+{  
+  level = level + 1;
+  analogWrite(PWM_pin, level);
+
+  char c_level = char(level);
+  char buff[10];
+
+  sprintf(buff, "%d  ", c_level);
+  
+  oled.cursorTo(20, 2);
+  oled.printString( buff );
+  
+  if(level >= 100)
+    level = 0;
+    
+  delay(50);
 }
