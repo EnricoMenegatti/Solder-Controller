@@ -73,7 +73,7 @@ void loop()
   sprintf(buff, "%d  -  %d  ", level, temp_return);
   
   oled.cursorTo(20, 2);
-  oled.printString( buff );
+  oled.printString( buff, 0 );
     
   delay(50);
 }

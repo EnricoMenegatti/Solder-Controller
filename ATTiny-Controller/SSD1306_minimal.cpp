@@ -483,38 +483,40 @@ void SSD1306_Mini::displayX(int off) {
 
 
 
-void SSD1306_Mini::printChar( char ch ){
-    
-    char data[5];
-    unsigned char i= ch;
-    
-    data[0]= getFlash(BasicFont, i*5 );
-    data[1]= getFlash(BasicFont, i*5 + 1);
-    data[2]= getFlash(BasicFont, i*5 + 2);
-    data[3]= getFlash(BasicFont, i*5 + 3);
-    data[4]= getFlash(BasicFont, i*5 + 4);    
-    
-    Wire.beginTransmission(SlaveAddress);
-    Wire.send(GOFi2cOLED_Data_Mode);            // data mode
-    
-    Wire.send( 0x00 );
-    Wire.send( data[0] );
-    Wire.send( data[1] );
-    Wire.send( data[2] );
-    Wire.send( data[3] );
-    Wire.send( data[4] );
-    Wire.send( 0x00 );
+void SSD1306_Mini::printChar( char ch, int dim ){
+
+    if (dim == 0)
+    {
+      char data[5];
+      unsigned char i= ch;
       
-    Wire.endTransmission();
-  
+      data[0]= getFlash(BasicFont, i*5 );
+      data[1]= getFlash(BasicFont, i*5 + 1);
+      data[2]= getFlash(BasicFont, i*5 + 2);
+      data[3]= getFlash(BasicFont, i*5 + 3);
+      data[4]= getFlash(BasicFont, i*5 + 4);    
+      
+      Wire.beginTransmission(SlaveAddress);
+      Wire.send(GOFi2cOLED_Data_Mode);            // data mode
+      
+      Wire.send( 0x00 );
+      Wire.send( data[0] );
+      Wire.send( data[1] );
+      Wire.send( data[2] );
+      Wire.send( data[3] );
+      Wire.send( data[4] );
+      Wire.send( 0x00 );
+        
+      Wire.endTransmission();
+    }
 }
 
-void SSD1306_Mini::printString( char * pText ){
+void SSD1306_Mini::printString( char * pText, int dim ){
   unsigned char i;
   unsigned char len = strlen( pText );
   
   for (i=0;i<len;i++){
-     printChar( pText[i] ); 
+     printChar( pText[i], dim ); 
   }
   
 }
@@ -538,4 +540,3 @@ void SSD1306_Mini::drawImage( const unsigned char * img, unsigned char col, unsi
   }
   
 }
-

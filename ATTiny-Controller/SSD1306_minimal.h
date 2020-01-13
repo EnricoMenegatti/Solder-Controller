@@ -124,10 +124,10 @@ class SSD1306_Mini {
     void cursorTo( unsigned char row, unsigned char col );
     
     // print a single character
-    void printChar( char ch );
+    void printChar( char ch, int dim );
     
     // print a string to the screen
-    void printString( char * pText );
+    void printString( char * pText, int dim );
     
     // draw an image with defined x,y position and width,height definition
     void drawImage( const unsigned char * img, unsigned char col, unsigned char row, unsigned char w, unsigned char h );
@@ -145,4 +145,3 @@ class SSD1306_Mini {
 
 
 #endif
-
