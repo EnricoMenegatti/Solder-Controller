@@ -571,30 +571,34 @@ void SSD1306_Mini::drawImage( const unsigned char * img, unsigned char col, unsi
   }
 }
 
+//trasformo il carattere 5x7 in 10x14
 void SSD1306_Mini::getBiggerChar( unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4 )
 {
 	bool bit[16];
+	int temp_big_ch[2];
 
 	for (int i = 0; i < 16; i + 2)
 	{
-		bit[i] = GetBit(small_ch, i);
+		bit[i] = getBit(small_ch, i);
 		bit[i + 1] = bit[i];
 	}
   
 	for (int i = 0; i < 16; i ++)
 	{
 		if (i < 8)
-			big_ch_1 = big_ch_1 || (bit[i] << i);
+			temp_big_ch[0] = temp_big_ch[0] | (bit[i] << i);
 
 		else
-			big_ch_3 = big_ch_3 || (bit[i] << (i - 8));
+			temp_big_ch[1] = temp_big_ch[1] | (bit[i] << (i - 8));
 	}
 
-	big_ch_2 = big_ch_1;
-	big_ch_4 = big_ch_3;
+	big_ch_1 = char(temp_big_ch[0]);
+	big_ch_2 = char(temp_big_ch[0]);
+	big_ch_3 = char(temp_big_ch[1]);
+	big_ch_4 = char(temp_big_ch[1]);
 }
 
-bool SSD1306_Mini::GetBit(byte b, int bitNumber) // ritorna il volore del bit indicato
+bool SSD1306_Mini::getBit(byte b, int bitNumber) // ritorna il volore del bit indicato
 {
    return (b & (1 << bitNumber-1)) != 0;
 }

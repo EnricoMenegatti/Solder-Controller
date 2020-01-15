@@ -134,6 +134,10 @@ class SSD1306_Mini {
       
     //  
     void displayX(int off);
+
+    void getBiggerChar( unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4 );
+
+    bool getBit(byte b, int bitNumber);
   
 //  private:
     void sendCommand(unsigned char command);
