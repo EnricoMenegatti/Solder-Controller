@@ -1,6 +1,5 @@
-
+#include "PID_v1.h"
 #include "SSD1306_minimal.h"
-#include "pid-attiny.h"
 #include <avr/pgmspace.h>
 
 //DISPLAY------------------------------------------------------------------------------------------------------------------
@@ -38,12 +37,15 @@ const byte ADC_TEMP_pin = A3;
 int temp_return;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-// Parameters for PID regulator
-pidData_t pidData;
-// PID in and output values
-pidValues_t pidValues;
-// Global parameter flags, pid timer, pid enabled, i2c action and read mode permanent
-globalFlags_t gFlags = {TRUE, TRUE, FALSE, FALSE, PID_I2C_READ_MEASUREMENT_VALUE};
+//Define Variables we'll be connecting to
+double Setpoint, Input, Output;
+
+//Define the aggressive and conservative Tuning Parameters
+double aggKp=4, aggKi=0.2, aggKd=1;
+double consKp=1, consKi=0.05, consKd=0.25;
+
+//Specify the links and initial tuning parameters
+PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
   
 void logo()
 {
@@ -56,35 +58,8 @@ void logo()
   delay(2000);
 }
 
-void initPID()
+void initDISPLAY()
 {
-    pid_Init(K_P_DEFAULT, K_I_DEFAULT, K_D_DEFAULT, &pidData, &pidValues);
-
-/*    ADMUX =
-        (0 << ADLAR) | // do not left shift result (for 10-bit values)
-        (0 << REFS1) | // Sets ref. voltage to VCC, bit 1
-        (0 << REFS0) | // Sets ref. voltage to VCC, bit 0
-        (1 << MUX0) |  //combined with next line…
-        (1 << MUX1);   // sets ADC3 (A3/PB3) as analog input channel
-
-    ADCSRA =
-        (1 << ADEN) |  // Enable ADC
-        (1 << ADPS2) | // set prescaler to 128, bit 2
-        (1 << ADPS1) | // set prescaler to 128, bit 1
-        (0 << ADPS0);  // set prescaler to 128, bit 0
-*/
-    // Set up timer, enable timer/counter 0 overflow interrupt
-    TCCR0A = (1 << CS00);
-    TIMSK |= (1 << TOIE0);
-    TCNT0 = 0;
-}
-
-void setup() 
-{
-  pinMode(PWM_pin, OUTPUT);
-
-  level = 0;
-  
   oled.init(0x3c); //indirizzo del display
   oled.clear();
 
@@ -93,21 +68,51 @@ void setup()
   logo();
 
   oled.clear();
+}
+
+void initPID()
+{
+  //initialize the variables we're linked to
+  Input = analogRead(ADC_TEMP_pin) >> 2; //10bit to 8bit
+  Setpoint = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
+
+  //turn the PID on
+  myPID.SetMode(AUTOMATIC);
+}
+
+void setup() 
+{
+  pinMode(PWM_pin, OUTPUT);
+  
+  initPID();
+  initDISPLAY();
+  
   sei(); // enable interrupts
 }
 
 void loop() 
 {  
-  level = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
-  temp_return = analogRead(ADC_TEMP_pin) >> 2;
-  analogWrite(PWM_pin, level);
-                                                        
-  char buff[20];
+  Setpoint = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
+  Input = analogRead(ADC_TEMP_pin) >> 2; //10bit to 8bit
 
-  sprintf(buff, "%d  -  %d  ", level, temp_return);
+  double gap = abs(Setpoint-Input); //distance away from setpoint
+  if (gap < 10)
+  {  //we're close to setpoint, use conservative tuning parameters
+    myPID.SetTunings(consKp, consKi, consKd);
+  }
+  else
+  {
+     //we're far from setpoint, use aggressive tuning parameters
+     myPID.SetTunings(aggKp, aggKi, aggKd);
+  }
+
+  myPID.Compute();
+  analogWrite(PWM_pin, Output);
+                                                        
+  char buff[128];
+
+  sprintf(buff, "%d  -  %d  -  %d  ", Setpoint, Input, Output);
   
-  oled.cursorTo(20, 2);
+  oled.cursorTo(5, 2);
   oled.printString(buff, 0);
-    
-  delay(50);
 }
