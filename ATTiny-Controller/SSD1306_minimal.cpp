@@ -153,7 +153,7 @@ const unsigned char  BasicFont[] PROGMEM = {
 	0x00, 0x08, 0x36, 0x41, 0x00, 
 	0x00, 0x00, 0x77, 0x00, 0x00, 
 	0x00, 0x41, 0x36, 0x08, 0x00, 
-	0x02, 0x01, 0x02, 0x04, 0x02, 
+/*	0x02, 0x01, 0x02, 0x04, 0x02, 
 	0x3C, 0x26, 0x23, 0x26, 0x3C, 
 	0x1E, 0xA1, 0xA1, 0x61, 0x12, 
 	0x3A, 0x40, 0x40, 0x20, 0x7A, 
@@ -281,7 +281,7 @@ const unsigned char  BasicFont[] PROGMEM = {
 	0x00, 0x1F, 0x01, 0x01, 0x1E, 
 	0x00, 0x19, 0x1D, 0x17, 0x12, 
 	0x00, 0x3C, 0x3C, 0x3C, 0x3C, 
-	0x00, 0x00, 0x00, 0x00, 0x00, 
+	0x00, 0x00, 0x00, 0x00, 0x00,*/ 
 };
 
 
@@ -509,7 +509,7 @@ void SSD1306_Mini::printChar( char ch, int dim ){
         
       Wire.endTransmission();
     }
-    else if (dim = 1)
+    else if (dim == 1)
     {
       char temp_data[5];
       char data[20];
@@ -536,6 +536,12 @@ void SSD1306_Mini::printChar( char ch, int dim ){
       Wire.send( data[2] );
       Wire.send( data[3] );
       Wire.send( data[4] );
+      Wire.send( data[5] );
+      Wire.send( data[6] );
+      Wire.send( data[7] );
+      Wire.send( data[8] );
+      Wire.send( data[9] );
+      Wire.send( data[10] );
       Wire.send( 0x00 );
         
       Wire.endTransmission();
@@ -575,27 +581,29 @@ void SSD1306_Mini::drawImage( const unsigned char * img, unsigned char col, unsi
 void SSD1306_Mini::getBiggerChar( unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4 )
 {
 	bool bit[16];
-	int temp_big_ch[2];
+	byte temp_big_ch[2];
 
 	for (int i = 0; i < 16; i + 2)
 	{
 		bit[i] = getBit(small_ch, i);
 		bit[i + 1] = bit[i];
 	}
+
+  temp_big_ch[0] = temp_big_ch[0] | (bit[7] | (bit[6] >> 1) | (bit[5] >> 2) | (bit[4] >> 3) | (bit[3] >> 4) | (bit[2] >> 5) | (bit[1] >> 6) | (bit[0] >> 7));
   
-	for (int i = 0; i < 16; i ++)
+/*	for (int i = 0; i < 16; i ++)
 	{
 		if (i < 8)
 			temp_big_ch[0] = temp_big_ch[0] | (bit[i] << i);
 
 		else
 			temp_big_ch[1] = temp_big_ch[1] | (bit[i] << (i - 8));
-	}
+	}*/
 
-	big_ch_1 = char(temp_big_ch[0]);
-	big_ch_2 = char(temp_big_ch[0]);
-	big_ch_3 = char(temp_big_ch[1]);
-	big_ch_4 = char(temp_big_ch[1]);
+	big_ch_1 = temp_big_ch[0];
+	big_ch_2 = temp_big_ch[0];
+	big_ch_3 = temp_big_ch[1];
+	big_ch_4 = temp_big_ch[1];
 }
 
 bool SSD1306_Mini::getBit(byte b, int bitNumber) // ritorna il volore del bit indicato
