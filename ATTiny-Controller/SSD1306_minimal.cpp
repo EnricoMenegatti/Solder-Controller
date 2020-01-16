@@ -581,24 +581,19 @@ void SSD1306_Mini::drawImage( const unsigned char * img, unsigned char col, unsi
 void SSD1306_Mini::getBiggerChar( unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4 )
 {
 	bool bit[16];
-	byte temp_big_ch[2];
+	int temp_big_ch[2];
 
-	for (int i = 0; i < 16; i + 2)
+	for (int i = 0; i < 16; i = i + 2)
 	{
-		bit[i] = getBit(small_ch, i);
+		bit[i] = getBit(small_ch, i / 2);
 		bit[i + 1] = bit[i];
 	}
 
-  temp_big_ch[0] = temp_big_ch[0] | (bit[7] | (bit[6] >> 1) | (bit[5] >> 2) | (bit[4] >> 3) | (bit[3] >> 4) | (bit[2] >> 5) | (bit[1] >> 6) | (bit[0] >> 7));
-  
-/*	for (int i = 0; i < 16; i ++)
+  for (int i = 0; i < 8; i ++)
 	{
-		if (i < 8)
-			temp_big_ch[0] = temp_big_ch[0] | (bit[i] << i);
-
-		else
-			temp_big_ch[1] = temp_big_ch[1] | (bit[i] << (i - 8));
-	}*/
+			temp_big_ch[0] = temp_big_ch[0] | (bit[i] << (7 - i));
+			temp_big_ch[1] = temp_big_ch[1] | (bit[i + 8] << (7 - i));
+	}
 
 	big_ch_1 = temp_big_ch[0];
 	big_ch_2 = temp_big_ch[0];
