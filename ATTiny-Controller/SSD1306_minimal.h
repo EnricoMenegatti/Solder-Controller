@@ -121,21 +121,21 @@ class SSD1306_Mini {
     void clipArea(unsigned char col, unsigned char row, unsigned char w, unsigned char h);
     
     // move the cursor to a location (similar to clipArea)
-    void cursorTo( unsigned char row, unsigned char col );
+    void cursorTo(unsigned char row, unsigned char col);
     
     // print a single character
-    void printChar( char ch, int dim );
+    void printChar(char ch, int dim, unsigned char col, unsigned char row);
     
     // print a string to the screen
-    void printString( char * pText, int dim );
+    void printString(char * pText, int dim, unsigned char col, unsigned char row);
     
     // draw an image with defined x,y position and width,height definition
-    void drawImage( const unsigned char * img, unsigned char col, unsigned char row, unsigned char w, unsigned char h );
+    void drawImage(const unsigned char * img, unsigned char col, unsigned char row, unsigned char w, unsigned char h );
       
     //  
     void displayX(int off);
 
-    void getBiggerChar( unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4 );
+    void getBiggerChar(unsigned char small_ch, unsigned char * big_ch_1, unsigned char * big_ch_2, unsigned char * big_ch_3, unsigned char * big_ch_4);
 
     bool getBit(byte b, int bitNumber);
   
@@ -143,7 +143,7 @@ class SSD1306_Mini {
     void sendCommand(unsigned char command);
     void sendData(unsigned char Data);
   
-    unsigned char getFlash( const unsigned char * mem, unsigned int idx  );
+    unsigned char getFlash(const unsigned char * mem, unsigned int idx);
 
 };
 

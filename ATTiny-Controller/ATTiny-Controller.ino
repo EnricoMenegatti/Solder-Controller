@@ -89,9 +89,7 @@ void setup()
   initPID();
   initDISPLAY();
 
-  //sprintf(buff, "ciao");
-  oled.cursorTo(5, 2);
-  oled.printChar('a', 1);
+  oled.printChar('a', 1, 5, 2);//char, dimensione, col, row
   delay(5000);
   
   //sei(); // enable interrupts
@@ -117,7 +115,6 @@ void loop()
   analogWrite(PWM_pin, Output);
                                                       
   sprintf(buff, "%d  -  %d  -  %d  ", Setpoint, Input, Output);
-  
-  oled.cursorTo(5, 2);
-  oled.printString(buff, 0);
+
+  oled.printString(buff, 0, 5, 2);
 }
