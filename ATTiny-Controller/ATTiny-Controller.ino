@@ -34,6 +34,12 @@ const byte PWM_pin = 1;
 int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
+#define SETPOINT_MUL 1
+#define SETPOINT_ADD 230
+
+#define INPUT_MUL 1
+#define INPUT_ADD 230
+
 const byte ADC_CMD_pin = A2;
 const byte ADC_TEMP_pin = A3;
 int temp_return;
@@ -48,7 +54,16 @@ double consKp=1, consKi=0.05, consKd=0.25;
 
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
-  
+
+//INTERRUPT----------------------------------------------------------------------------------------------------------------
+/*
+ * Timer interrupt to control the sampling interval
+ */
+ISR(TIMER1_COMPA_vect)
+{
+  writePID();
+}
+
 void logo()
 {
 
@@ -72,33 +87,33 @@ void initDISPLAY()
   oled.clear();
 }
 
+void initINTERRUPT()
+{
+/*  single time[s] = 1 / (clock[hz] / prescaler)
+    single time = 1 / (16000000 / 16384) = 1.024ms
+    prescaler = clock[hz] * single time[s]
+    final time = OCR1C * (1 / (clock[hz] / prescaler))
+    final time = 10 * 1.024 = 10.24ms
+*/
+  TCCR1 |= (1 << CTC1);  // clear timer on compare match
+  TCCR1 |= (1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10); //clock prescaler 16384
+  OCR1C = 10; // compare match value 
+  TIMSK |= (1 << OCIE1A); // enable compare match interrupt
+}
+
 void initPID()
 {
   //initialize the variables we're linked to
-  Input = analogRead(ADC_TEMP_pin) >> 2; //10bit to 8bit
-  Setpoint = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
+  Setpoint = SETPOINT_ADD + SETPOINT_MUL * (analogRead(ADC_CMD_pin) >> 2); //10bit to 8bit
+  Input = INPUT_ADD + INPUT_MUL * (analogRead(ADC_TEMP_pin) >> 2); //10bit to 8bit
 
   //turn the PID on
   myPID.SetMode(AUTOMATIC);
 }
 
-void setup() 
+void writePID()
 {
-  pinMode(PWM_pin, OUTPUT);
-  
-  initPID();
-  initDISPLAY();
-
-  oled.printChar('a', 1, 5, 2);//char, dimensione, col, row
-  delay(5000);
-  
-  //sei(); // enable interrupts
-}
-
-void loop() 
-{  
-  Setpoint = analogRead(ADC_CMD_pin) >> 2; //10bit to 8bit
-  Input = analogRead(ADC_TEMP_pin) >> 2; //10bit to 8bit
+  Input = INPUT_ADD + INPUT_MUL * (analogRead(ADC_TEMP_pin) >> 2); //10bit to 8bit
 
   double gap = abs(Setpoint-Input); //distance away from setpoint
   if (gap < 10)
@@ -113,8 +128,30 @@ void loop()
 
   myPID.Compute();
   analogWrite(PWM_pin, Output);
+}
+
+void setup() 
+{
+  pinMode(PWM_pin, OUTPUT);
+  
+  initPID();
+  initDISPLAY();
+  initINTERRUPT();
+
+  oled.printChar('a', 1, 5, 2);//char, dimensione, col, row
+  delay(5000);
+  
+  sei(); // enable interrupts
+}
+
+void loop() 
+{  
+  Setpoint = SETPOINT_ADD + SETPOINT_MUL * (analogRead(ADC_CMD_pin) >> 2); //10bit to 8bit
+  
+//limiti di temperatura
+  if (Setpoint < 250) Setpoint = 250;
+  if (Setpoint > 450) Setpoint = 450;
                                                       
   sprintf(buff, "%d  -  %d  -  %d  ", Setpoint, Input, Output);
-
   oled.printString(buff, 0, 5, 2);
 }
