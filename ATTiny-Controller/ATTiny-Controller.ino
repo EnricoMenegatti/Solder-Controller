@@ -54,16 +54,7 @@ double consKp=1, consKi=0.05, consKd=0.25;
 
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
-
-//INTERRUPT----------------------------------------------------------------------------------------------------------------
-/*
- * Timer interrupt to control the sampling interval
- */
-ISR(TIMER1_COMPA_vect)
-{
-  writePID();
-}
-
+  
 void logo()
 {
 
@@ -87,19 +78,6 @@ void initDISPLAY()
   oled.clear();
 }
 
-void initINTERRUPT()
-{
-/*  single time[s] = 1 / (clock[hz] / prescaler)
-    single time = 1 / (16000000 / 16384) = 1.024ms
-    prescaler = clock[hz] * single time[s]
-    final time = OCR1C * (1 / (clock[hz] / prescaler))
-    final time = 10 * 1.024 = 10.24ms
-*/
-  TCCR1 |= (1 << CTC1);  // clear timer on compare match
-  TCCR1 |= (1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10); //clock prescaler 16384
-  OCR1C = 10; // compare match value 
-  TIMSK |= (1 << OCIE1A); // enable compare match interrupt
-}
 
 void initPID()
 {
@@ -136,12 +114,9 @@ void setup()
   
   initPID();
   initDISPLAY();
-  initINTERRUPT();
 
   oled.printChar('a', 1, 5, 2);//char, dimensione, col, row
   delay(5000);
-  
-  sei(); // enable interrupts
 }
 
 void loop() 
