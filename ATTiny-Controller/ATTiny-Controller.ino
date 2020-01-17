@@ -126,7 +126,9 @@ void loop()
 //limiti di temperatura
   if (Setpoint < 250) Setpoint = 250;
   if (Setpoint > 450) Setpoint = 450;
-                                                      
+
+  writePID();
+
   sprintf(buff, "%d  -  %d  -  %d  ", Setpoint, Input, Output);
   oled.printString(buff, 0, 5, 2);
 }
