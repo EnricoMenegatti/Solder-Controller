@@ -482,7 +482,7 @@ void SSD1306_Mini::displayX(int off) {
 
 void SSD1306_Mini::printChar(char ch, int dim, unsigned char col, unsigned char row)
 {
-	cursorTo(col, row);
+	//cursorTo(col, row);
 
     if (dim == 0)
     {
