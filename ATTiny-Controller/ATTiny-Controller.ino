@@ -23,25 +23,33 @@ int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
 #define SETPOINT_MUL 1
-#define SETPOINT_ADD 230
+#define SETPOINT_ADD 0//230
 
 #define INPUT_MUL 1
-#define INPUT_ADD 230
+#define INPUT_ADD 0//230
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
 int temp_return;
 
+
 //PID----------------------------------------------------------------------------------------------------------------------
+//Define the aggressive and conservative Tuning Parameters
+#define aggKp 4
+#define aggKi 0.2
+#define aggKd 1
+
+#define consKp 1
+#define consKi 0.05
+#define consKd 0.25
+
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 
-//Define the aggressive and conservative Tuning Parameters
-double aggKp=4, aggKi=0.2, aggKd=1;
-double consKp=1, consKi=0.05, consKd=0.25;
+double Kp, Ki, Kd;
 
 //Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
   
 void logo()
 {
@@ -69,8 +77,8 @@ void initDISPLAY()
 void initPID()
 {
   //initialize the variables we're linked to
-  Setpoint = SETPOINT_ADD + SETPOINT_MUL * (analogRead(ADC_CMD_pin) >> 2); //10bit to 8bit
-  Input = INPUT_ADD + INPUT_MUL * (analogRead(ADC_TEMP_pin) >> 2); //10bit to 8bit
+  Setpoint = SETPOINT_ADD + SETPOINT_MUL * analogRead(ADC_CMD_pin); //10bit to 8bit
+  Input = INPUT_ADD + INPUT_MUL * analogRead(ADC_TEMP_pin); //10bit to 8bit
 
   //turn the PID on
   myPID.SetMode(AUTOMATIC);
@@ -78,19 +86,23 @@ void initPID()
 
 void writePID()
 {
-  Input = INPUT_ADD + INPUT_MUL * (analogRead(ADC_TEMP_pin) >> 2); //10bit to 8bit
+  Input = INPUT_ADD + INPUT_MUL * analogRead(ADC_TEMP_pin); //10bit to 8bit
 
   double gap = abs(Setpoint-Input); //distance away from setpoint
-  if (gap < 10)
+  if (gap < 100)
   {  //we're close to setpoint, use conservative tuning parameters
-    myPID.SetTunings(consKp, consKi, consKd);
+    Kp = consKp;
+    Ki = consKi;
+    Kd = consKd;
   }
   else
-  {
-     //we're far from setpoint, use aggressive tuning parameters
-     myPID.SetTunings(aggKp, aggKi, aggKd);
+  {  //we're far from setpoint, use aggressive tuning parameters
+    Kp = aggKp;
+    Ki = aggKi;
+    Kd = aggKd;
   }
-
+  
+  myPID.SetTunings(Kp, Ki, Kd);
   myPID.Compute();
   analogWrite(PWM_pin, Output);
 }
@@ -105,23 +117,19 @@ void setup()
 
 void loop() 
 {  
-  Setpoint = SETPOINT_ADD + SETPOINT_MUL * (analogRead(ADC_CMD_pin) >> 2); //10bit to 8bit
+  Setpoint = SETPOINT_ADD + SETPOINT_MUL * analogRead(ADC_CMD_pin); //10bit to 8bit
   
 //limiti di temperatura
-  if (Setpoint < 250) Setpoint = 250;
-  if (Setpoint > 450) Setpoint = 450;
+  //if (Setpoint < 250) Setpoint = 250;
+  //if (Setpoint > 450) Setpoint = 450;
 
   writePID();
 
   sprintf(buff, "Setpoint: %d     ", int(Setpoint));
-  oled.cursorTo(5, 2);
-  oled.printString(buff, 0, 5, 2);
+  oled.cursorTo(5, 1);
+  oled.printString(buff);
 
   sprintf(buff, "Input: %d     ", int(Input));
-  oled.cursorTo(5, 3);
-  oled.printString(buff, 0, 5, 2);
-
-  sprintf(buff, "Output: %d     ", int(Output));
-  oled.cursorTo(5, 4);
-  oled.printString(buff, 0, 5, 2);
+  oled.cursorTo(5, 2);
+  oled.printString(buff);
 }
