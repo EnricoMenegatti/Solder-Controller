@@ -22,11 +22,25 @@ char buff[20];
 int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
-#define SETPOINT_MUL 1
-#define SETPOINT_ADD 0//230
+//Formula retta per scalatura lettura temperatura
+//Y = mX + q
+//    X  -  Y
+//1. 460 - 151
+//2. 760 - 495
+//m = dy / dx = 344 / 300 = 1.146667
+//q = (x2y1 - x1y2) / (x2 - x1) = -376.46667
+#define INPUT_MUL 1.146667
+#define INPUT_ADD -376.46667
 
-#define INPUT_MUL 1
-#define INPUT_ADD 0//230
+//Formula retta per scalatura temperatura di comando
+//Y = mX + q
+//    X  -  Y
+//1. 100 - 150
+//2. 924 - 500
+//m = dy / dx = 350 / 824 = 0,42476
+//q = (x2y1 - x1y2) / (x2 - x1) = 107.52427
+#define SETPOINT_MUL 0,42476
+#define SETPOINT_ADD 107.52427
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
@@ -50,10 +64,10 @@ double Kp, Ki, Kd;
 
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-  
-void logo()
-{
 
+void initDISPLAY()
+{
+  oled.init(0x3c); //indirizzo del display
   oled.startScreen();
   oled.clear();
 
@@ -61,24 +75,11 @@ void logo()
   delay(2000);
 }
 
-void initDISPLAY()
-{
-  oled.init(0x3c); //indirizzo del display
-  oled.clear();
-
-  delay(1000);
-  
-  logo();
-
-  oled.clear();
-}
-
-
 void initPID()
 {
   //initialize the variables we're linked to
-  Setpoint = SETPOINT_ADD + SETPOINT_MUL * analogRead(ADC_CMD_pin); //10bit to 8bit
-  Input = INPUT_ADD + INPUT_MUL * analogRead(ADC_TEMP_pin); //10bit to 8bit
+  Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
+  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
 
   //turn the PID on
   myPID.SetMode(AUTOMATIC);
@@ -86,15 +87,16 @@ void initPID()
 
 void writePID()
 {
-  Input = INPUT_ADD + INPUT_MUL * analogRead(ADC_TEMP_pin); //10bit to 8bit
+  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
 
-  double gap = abs(Setpoint-Input); //distance away from setpoint
-  if (gap < 100)
+  int gap = abs(Setpoint - Input); //distance away from setpoint
+  if (gap < 10)
   {  //we're close to setpoint, use conservative tuning parameters
     Kp = consKp;
     Ki = consKi;
     Kd = consKd;
   }
+  
   else
   {  //we're far from setpoint, use aggressive tuning parameters
     Kp = aggKp;
@@ -117,11 +119,11 @@ void setup()
 
 void loop() 
 {  
-  Setpoint = SETPOINT_ADD + SETPOINT_MUL * analogRead(ADC_CMD_pin); //10bit to 8bit
+  Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
   
 //limiti di temperatura
-  //if (Setpoint < 250) Setpoint = 250;
-  //if (Setpoint > 450) Setpoint = 450;
+  if (Setpoint < 150) Setpoint = 150;
+  if (Setpoint > 500) Setpoint = 500;
 
   writePID();
 
