@@ -95,6 +95,16 @@ void initPID()
   myPID.SetMode(AUTOMATIC);
 }
 
+void initWDT()
+{
+  WDTCR |= 
+    (1<<WDE)    //enable watchdog
+  | (0<<WDP3)   //set watchdog timer to 1s
+  | (1<<WDP2)   //
+  | (1<<WDP1)   //                     
+  | (0<<WDP0);  //
+}
+
 void writePID()
 {
   Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
@@ -125,6 +135,7 @@ void setup()
   
   initPID();
   initDISPLAY();
+  initWDT();
 }
 
 void loop() 
