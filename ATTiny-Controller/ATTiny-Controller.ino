@@ -95,14 +95,33 @@ void initPID()
   myPID.SetMode(AUTOMATIC);
 }
 
-void initWDT()
+void setWDT()
 {
-  WDTCR |= 
-    (1<<WDE)    //enable watchdog
-  | (0<<WDP3)   //set watchdog timer to 1s
+  WDTCR = 
+    (0<<WDIF)   //interrupt flag
+  & (0<<WDIE)   //enable wdt as interrupt
+  & (0<<WDCE)   //enable changes
+  | (1<<WDE)    //enable wdt as reset
+  & (0<<WDP3)   //set adt to 1s
   | (1<<WDP2)   //
-  | (1<<WDP1)   //                     
-  | (0<<WDP0);  //
+  | (1<<WDP1)   //
+  & (0<<WDP0);  //
+}
+
+void resetWDT()
+{
+/*
+- In the same operation, write a logic one to WDCE and WDE. A logic one must be written to WDE regardless of the previous value of the WDE bit.
+- Within the next four clock cycles, in the same operation, write the WDE and WDP bits as desired, but with the WDCE bit cleared.
+- WDE is overridden by WDRF in MCUSR. This means that WDE is always set when WDRF is set so to clear WDE, WDRF must be cleared before.
+*/
+  MCUSR = 0x00; //clear reset source caused rgister 
+  
+  WDTCR |= 
+    (1<<WDCE)   //enable changes
+  | (1<<WDE);   //enable wdt as reset
+
+  WDTCR = 0x00; //turn off wdt
 }
 
 void writePID()
@@ -131,15 +150,18 @@ void writePID()
 
 void setup() 
 {
+  resetWDT();
+    
   pinMode(PWM_pin, OUTPUT);
   
   initPID();
   initDISPLAY();
-  initWDT();
 }
 
 void loop() 
-{  
+{
+  setWDT();
+  
   Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
   
 //limiti di temperatura
@@ -159,4 +181,6 @@ void loop()
   sprintf(buff, "Output: %d     ", int(Output));
   oled.cursorTo(5, 3);
   oled.printString(buff);
+
+  resetWDT();
 }
