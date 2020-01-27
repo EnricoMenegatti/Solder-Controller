@@ -25,7 +25,7 @@ const unsigned char solder_logo [] PROGMEM = {
 
 char buff[20];
 unsigned long last_time;
-#define REFRESH_TIME_MS 200 
+#define REFRESH_TIME_MS 150 
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1
@@ -72,28 +72,29 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
+  delay(1000);
   oled.init(0x3c); //indirizzo del display
   oled.startScreen();
   oled.clear();
 
   oled.drawImage(solder_logo, 5, 2, 123, 6);  //immagine, x, y, n° byte x, n° colonne byte
 //  oled.drawImage(solder_logo, 62, 2, 61, 6);  //immagine, x, y, n° byte x, n° colonne byte
-  delay(2000);
+  delay(1500);
 
   oled.clear();
 }
 
 void setWDT()
 {
-  WDTCR = 
-    (0<<WDIF)   //interrupt flag
+  WDTCR = 0x16;
+  /*  (0<<WDIF)   //interrupt flag
   & (0<<WDIE)   //enable wdt as interrupt
-  & (0<<WDCE)   //enable changes
+  | (1<<WDCE)   //enable changes
   | (1<<WDE)    //enable wdt as reset
-  & (0<<WDP3)   //set adt to 1s
+  & (0<<WDP3)   //set wdt to 1s
   | (1<<WDP2)   //
   | (1<<WDP1)   //
-  & (0<<WDP0);  //
+  & (0<<WDP0);  //*/
 }
 
 void resetWDT()
@@ -135,6 +136,8 @@ void setup()
 void loop() 
 {
   setWDT();
+
+  delay(2500);
   
   Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
   Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
@@ -168,6 +171,15 @@ void loop()
     sprintf(buff, "Output: %d     ", int(Output));
     oled.cursorTo(5, 3);
     oled.printString(buff);
+
+    sprintf(buff, "REG: %d     ", int(WDTCR));
+    oled.cursorTo(5, 4);
+    oled.printString(buff);
+
+    sprintf(buff, "RESET: %d     ", int(MCUSR));
+    oled.cursorTo(5, 5);
+    oled.printString(buff);
+
 
     last_time = millis();
   }
