@@ -37,15 +37,15 @@ int level;
 //    X  -  Y
 //1. 460 - 151
 //2. 760 - 495
-//m = dy / dx = 344 / 300 = 1.146667
-//q = (x2y1 - x1y2) / (x2 - x1) = -376.46667
-float INPUT_MUL = 1.1467;
-int INPUT_ADD = -376;
+//m = dy / dx = 1.148
+//q = (x2y1 - x1y2) / (x2 - x1) = -377.526
+float INPUT_MUL = 1.148;
+int INPUT_ADD = -377;
 
 //Formula retta per scalatura temperatura di comando
 //Y = mX + q
 //    X  -  Y
-//1. 30 - 200
+//1.  30 - 200
 //2. 910 - 450
 //m = dy / dx = 250 / 880 = 0.2841
 //q = (x2y1 - x1y2) / (x2 - x1) = 191.4773
