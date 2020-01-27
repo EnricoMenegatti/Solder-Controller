@@ -55,23 +55,15 @@ int SETPOINT_ADD = 191;
 #define ADC_TEMP_pin A3
 int temp_return;
 
-
 //PID----------------------------------------------------------------------------------------------------------------------
-#define SAMPLE_TIME 10
+#define TEMPERATURE_GAP 20
 
-//Define the aggressive and conservative Tuning Parameters
-double aggKp = 4;
-double aggKi = 0.2;
-double aggKd = 1;
-
-double consKp = 1;
-double consKi = 0.05;
-double consKd = 0.25;
+double Kp = 1;
+double Ki = 0.05;
+double Kd = 0.25;
 
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
-
-double Kp, Ki, Kd;
 
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
@@ -87,15 +79,6 @@ void initDISPLAY()
   delay(2000);
 
   oled.clear();
-}
-
-void initPID()
-{
-  //sets the period, in Milliseconds, at which the calculation is performed
-  myPID.SetSampleTime(SAMPLE_TIME);
-  
-  //turn the PID on
-  myPID.SetMode(AUTOMATIC);
 }
 
 void setWDT()
@@ -127,28 +110,10 @@ void resetWDT()
   WDTCR = 0x00; //turn off wdt
 }
 
-void writePID()
+void initPID()
 {
-  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
-
-  int gap = abs(Setpoint - Input); //distance away from setpoint
-  if (gap < 20)
-  {  //we're close to setpoint, use conservative tuning parameters
-    Kp = consKp;
-    Ki = consKi;
-    Kd = consKd;
-  }
-  
-  else
-  {  //we're far from setpoint, use aggressive tuning parameters
-    Kp = aggKp;
-    Ki = aggKi;
-    Kd = aggKd;
-  }
-  
-  myPID.SetTunings(Kp, Ki, Kd);
-  myPID.Compute();
-  analogWrite(PWM_pin, Output);
+  //turn the PID on
+  myPID.SetMode(AUTOMATIC);
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
@@ -170,14 +135,23 @@ void loop()
   setWDT();
   
   Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
+  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
   
 //limiti di temperatura
   if (Setpoint < 200) Setpoint = 200;
   if (Setpoint > 450) Setpoint = 450;
 
-  writePID();
+  int gap = abs(Setpoint - Input); //distance away from setpoint
+  if (gap < TEMPERATURE_GAP)
+  {
+    myPID.Compute();
+    analogWrite(PWM_pin, Output);
+  }
 
-
+  else
+  {
+    analogWrite(PWM_pin, 255);
+  }
 
   if (millis() - last_time >= REFRESH_TIME_MS)
   { 
