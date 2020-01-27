@@ -23,6 +23,8 @@ const unsigned char solder_logo [] PROGMEM = {
 };
 
 char buff[20];
+unsigned long last_time;
+#define REFRESH_TIME_MS 200 
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1
@@ -74,6 +76,7 @@ double Kp, Ki, Kd;
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
+//FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
   oled.init(0x3c); //indirizzo del display
@@ -148,6 +151,7 @@ void writePID()
   analogWrite(PWM_pin, Output);
 }
 
+//SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
   resetWDT();
@@ -156,8 +160,11 @@ void setup()
   
   initPID();
   initDISPLAY();
+
+  last_time = millis();
 }
 
+//MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
   setWDT();
@@ -170,17 +177,24 @@ void loop()
 
   writePID();
 
-  sprintf(buff, "Setpoint: %d     ", int(Setpoint));
-  oled.cursorTo(5, 1);
-  oled.printString(buff);
 
-  sprintf(buff, "Input: %d     ", int(Input));
-  oled.cursorTo(5, 2);
-  oled.printString(buff);
 
-  sprintf(buff, "Output: %d     ", int(Output));
-  oled.cursorTo(5, 3);
-  oled.printString(buff);
+  if (millis() - last_time >= REFRESH_TIME_MS)
+  { 
+    sprintf(buff, "Setpoint: %d     ", int(Setpoint));
+    oled.cursorTo(5, 1);
+    oled.printString(buff);
+  
+    sprintf(buff, "Input: %d     ", int(Input));
+    oled.cursorTo(5, 2);
+    oled.printString(buff);
+  
+    sprintf(buff, "Output: %d     ", int(Output));
+    oled.cursorTo(5, 3);
+    oled.printString(buff);
 
+    last_time = millis();
+  }
+  
   resetWDT();
 }
