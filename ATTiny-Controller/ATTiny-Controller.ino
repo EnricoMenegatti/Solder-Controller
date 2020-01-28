@@ -1,6 +1,7 @@
 #include "PID_v1.h"
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
@@ -84,35 +85,6 @@ void initDISPLAY()
   oled.clear();
 }
 
-void setWDT()
-{
-  WDTCR = 0x16;
-  /*  (0<<WDIF)   //interrupt flag
-  & (0<<WDIE)   //enable wdt as interrupt
-  | (1<<WDCE)   //enable changes
-  | (1<<WDE)    //enable wdt as reset
-  & (0<<WDP3)   //set wdt to 1s
-  | (1<<WDP2)   //
-  | (1<<WDP1)   //
-  & (0<<WDP0);  //*/
-}
-
-void resetWDT()
-{
-/*
-- In the same operation, write a logic one to WDCE and WDE. A logic one must be written to WDE regardless of the previous value of the WDE bit.
-- Within the next four clock cycles, in the same operation, write the WDE and WDP bits as desired, but with the WDCE bit cleared.
-- WDE is overridden by WDRF in MCUSR. This means that WDE is always set when WDRF is set so to clear WDE, WDRF must be cleared before.
-*/
-  MCUSR = 0x00; //clear reset source caused rgister 
-  
-  WDTCR |= 
-    (1<<WDCE)   //enable changes
-  | (1<<WDE);   //enable wdt as reset
-
-  WDTCR = 0x00; //turn off wdt
-}
-
 void initPID()
 {
   //turn the PID on
@@ -122,23 +94,21 @@ void initPID()
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
-  resetWDT();
-    
+  wdt_disable();
+  
   pinMode(PWM_pin, OUTPUT);
   
   initPID();
   initDISPLAY();
 
   last_time = millis();
+
+  wdt_enable(WDTO_2S);
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  setWDT();
-
-  delay(2500);
-  
   Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
   Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
   
@@ -184,5 +154,5 @@ void loop()
     last_time = millis();
   }
   
-  resetWDT();
+  wdt_reset();
 }
