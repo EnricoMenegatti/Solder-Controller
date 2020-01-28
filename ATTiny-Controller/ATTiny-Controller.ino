@@ -131,15 +131,15 @@ void loop()
 
   if (millis() - last_time >= REFRESH_TIME_MS)
   { 
-    sprintf(buff, "Setpoint: %d     ", int(Setpoint));
+    sprintf(buff, "Setpoint: %3d", int(Setpoint));
     oled.cursorTo(5, 1);
     oled.printString(buff);
   
-    sprintf(buff, "Input: %d     ", int(Input));
+    sprintf(buff, "Input: %3d", int(Input));
     oled.cursorTo(5, 2);
     oled.printString(buff);
   
-    sprintf(buff, "Output: %d     ", int(Output));
+    sprintf(buff, "Output: %3d", int(Output));
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
