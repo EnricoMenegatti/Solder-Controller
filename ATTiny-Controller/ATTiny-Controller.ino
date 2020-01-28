@@ -46,12 +46,12 @@ int INPUT_ADD = -377;
 //Formula retta per scalatura temperatura di comando
 //Y = mX + q
 //    X  -  Y
-//1.  30 - 200
-//2. 910 - 450
-//m = dy / dx = 250 / 880 = 0.2841
-//q = (x2y1 - x1y2) / (x2 - x1) = 191.4773
-float SETPOINT_MUL = 0.2841;
-int SETPOINT_ADD = 191;
+//1.  23 - 200
+//2.1000 - 450
+//m = dy / dx = 0.2559
+//q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
+float SETPOINT_MUL = 0.2559;
+int SETPOINT_ADD = 194;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
