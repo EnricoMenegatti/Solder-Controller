@@ -94,6 +94,7 @@ void initPID()
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
+  MCUSR = 0x00; //resetta il registro di stato della MCU
   wdt_disable();
   
   pinMode(PWM_pin, OUTPUT);
@@ -103,7 +104,7 @@ void setup()
 
   last_time = millis();
 
-  wdt_enable(WDTO_2S);
+  wdt_enable(WDTO_1S);
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
@@ -141,15 +142,6 @@ void loop()
     sprintf(buff, "Output: %d     ", int(Output));
     oled.cursorTo(5, 3);
     oled.printString(buff);
-
-    sprintf(buff, "REG: %d     ", int(WDTCR));
-    oled.cursorTo(5, 4);
-    oled.printString(buff);
-
-    sprintf(buff, "RESET: %d     ", int(MCUSR));
-    oled.cursorTo(5, 5);
-    oled.printString(buff);
-
 
     last_time = millis();
   }
