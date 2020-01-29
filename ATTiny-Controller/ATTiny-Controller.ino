@@ -1,4 +1,3 @@
-#include "PID_v1.h"
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
@@ -61,6 +60,24 @@ int temp_return;
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 20
 
+float Upper_P_limit = 255;
+float Lower_P_limit = 0;
+
+float Upper_I_limit = 255;
+float Lower_I_limit = 0;
+
+float Upper_D_limit = 255;
+float Lower_D_limit = 0;
+
+float Upper_Total_limit = 255;
+float Lower_Total_limit = 0;
+
+float Kp = 1;
+float Ki = 0.05;
+float Kd = 0.25;
+
+int Setpoint, Input, Output;
+/*
 double Kp = 1;
 double Ki = 0.05;
 double Kd = 0.25;
@@ -69,7 +86,7 @@ double Kd = 0.25;
 double Setpoint, Input, Output;
 
 //Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);*/
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -86,12 +103,6 @@ void initDISPLAY()
   oled.clear();
 }
 
-void initPID()
-{
-  //turn the PID on
-  myPID.SetMode(AUTOMATIC);
-}
-
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
@@ -100,7 +111,6 @@ void setup()
   
   pinMode(PWM_pin, OUTPUT);
   
-  initPID();
   initDISPLAY();
 
   last_time = millis();
@@ -136,7 +146,7 @@ void loop()
 
   else
   {
-    myPID.Compute();
+    Output = PID(Setpoint, Input);
     analogWrite(PWM_pin, Output);
     print_output = int(Output);
   }
