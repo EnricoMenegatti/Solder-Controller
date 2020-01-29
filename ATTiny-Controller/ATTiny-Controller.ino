@@ -72,9 +72,9 @@ float Lower_D_limit = 0;
 float Upper_Total_limit = 255;
 float Lower_Total_limit = 0;
 
-float Kp = 1;
-float Ki = 0.05;
-float Kd = 0.25;
+float Kp = 0;
+float Ki = 0;
+float Kd = 0;
 
 int Setpoint, Input, Output;
 /*
@@ -121,15 +121,12 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
+  Setpoint = 350;
+  Kp = analogRead(ADC_CMD_pin) / 50.0;
   Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
-  
-//limiti di temperatura
-  if (Setpoint < 200) Setpoint = 200;
-  if (Setpoint > 450) Setpoint = 450;
 
-  print_setpoint = (int(Setpoint) / 5) * 5;
-  print_input = (int(Input) / 5) * 5;
+  print_setpoint = Setpoint;
+  print_input = Input;
 
 //utilizzo il PID solo all'interno del range impostato  
   if (Setpoint < Input - TEMPERATURE_GAP)
@@ -148,7 +145,7 @@ void loop()
   {
     Output = PID(Setpoint, Input);
     analogWrite(PWM_pin, Output);
-    print_output = int(Output);
+    print_output = Output;
   }
   
 //stampo parametri ogni "REFRESH_TIME_MS"
@@ -164,6 +161,13 @@ void loop()
   
     sprintf(buff, "Output: %3d  ", print_output);
     oled.cursorTo(5, 3);
+    oled.printString(buff);
+
+    int temp_kp = int(Kp * 100);
+    int temp_ki = int(Ki * 100);
+    int temp_kd = int(Kd * 100);
+    sprintf(buff, "Kp: %4d  Ki: %4d  Kd: %4d  ", temp_kp, temp_ki, temp_kd);
+    oled.cursorTo(5, 4);
     oled.printString(buff);
 
     last_time = millis();
