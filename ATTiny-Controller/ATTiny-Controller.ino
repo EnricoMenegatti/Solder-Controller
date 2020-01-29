@@ -26,6 +26,7 @@ const unsigned char solder_logo [] PROGMEM = {
 
 char buff[20];
 unsigned long last_time;
+int print_setpoint, print_input, print_output;
 #define REFRESH_TIME_MS 150 
 
 //PWM----------------------------------------------------------------------------------------------------------------------
@@ -117,29 +118,41 @@ void loop()
   if (Setpoint < 200) Setpoint = 200;
   if (Setpoint > 450) Setpoint = 450;
 
-  int gap = abs(Setpoint - Input); //distance away from setpoint
-  if (gap < TEMPERATURE_GAP)
+  print_setpoint = (int(Setpoint) / 5) * 5;
+  print_input = (int(Input) / 5) * 5;
+
+//utilizzo il PID solo all'interno del range impostato  
+  if (Setpoint < Input - TEMPERATURE_GAP)
   {
-    myPID.Compute();
-    analogWrite(PWM_pin, Output);
+    analogWrite(PWM_pin, 0);
+    print_output = 0;
+  }
+  
+  else if (Setpoint > Input + TEMPERATURE_GAP)
+  {
+    analogWrite(PWM_pin, 255);
+    print_output = 255;
   }
 
   else
   {
-    analogWrite(PWM_pin, 255);
+    myPID.Compute();
+    analogWrite(PWM_pin, Output);
+    print_output = int(Output);
   }
-
-  if (millis() - last_time >= REFRESH_TIME_MS)
+  
+//stampo parametri ogni "REFRESH_TIME_MS"
+  if (millis() - last_time >= REFRESH_TIME_MS) 
   { 
-    sprintf(buff, "Setpoint: %3d", int(Setpoint));
+    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
     oled.cursorTo(5, 1);
     oled.printString(buff);
   
-    sprintf(buff, "Input: %3d", int(Input));
+    sprintf(buff, "Input: %3d  ", print_input);
     oled.cursorTo(5, 2);
     oled.printString(buff);
   
-    sprintf(buff, "Output: %3d", int(Output));
+    sprintf(buff, "Output: %3d  ", print_output);
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
