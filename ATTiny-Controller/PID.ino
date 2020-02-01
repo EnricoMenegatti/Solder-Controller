@@ -9,9 +9,9 @@ int PID(int val_SET, int val_IN)
    float Kp, Ki, Kd
   sono globali; sono introdotte e modificate tramite interfaccia HMI
   */
-  static int val_OUT = 0; /*Scrittura convertitore D/A: scrive la variabile di uscita*/
-  static int error = 0; /*differenza tra valore di consegna e valore reale */
-  static int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
+  int val_OUT = 0; /*Scrittura convertitore D/A: scrive la variabile di uscita*/
+  int error = 0; /*differenza tra valore di consegna e valore reale */
+  int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
 
   float P = 0; /* componente proporzionale */
   float I = 0; /* componente integrale */
@@ -49,9 +49,9 @@ int PID(int val_SET, int val_IN)
 
   Out = P + I + D;
 
-  if ( Out > Upper_Total_limit) Out = Upper_Total_limit;
+  if (Out > Upper_Total_limit) Out = Upper_Total_limit;
   if (Out < Lower_Total_limit) Out = Lower_Total_limit;
 
-  val_OUT = Out;
+  val_OUT = int(Out);
   return(val_OUT);
-} 
+}

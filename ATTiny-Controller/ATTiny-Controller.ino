@@ -2,6 +2,9 @@
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
+unsigned long last_cycle_time;
+int cycle_time;
+  
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
 
@@ -26,6 +29,7 @@ const unsigned char solder_logo [] PROGMEM = {
 char buff[20];
 unsigned long last_time;
 int print_setpoint, print_input, print_output;
+int temp_Input;
 #define REFRESH_TIME_MS 150 
 
 //PWM----------------------------------------------------------------------------------------------------------------------
@@ -55,7 +59,8 @@ int SETPOINT_ADD = 194;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
-int temp_return;
+#define MAX_READ_CYCLE 3
+int temp_return, read_cycle;
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 20
@@ -112,41 +117,33 @@ void setup()
   pinMode(PWM_pin, OUTPUT);
   
   initDISPLAY();
+  initINTERRUPT();
 
   last_time = millis();
+  last_cycle_time = micros();
 
   wdt_enable(WDTO_1S);
+  sei(); //enable interrupts
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = 350;
+  Setpoint = 300;
   Kp = analogRead(ADC_CMD_pin) / 50.0;
-  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
+
+//controllo sul valore letto in input per evitare disturbi
+  temp_Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
+  if (abs(temp_Input - Input) < TEMPERATURE_GAP || read_cycle > MAX_READ_CYCLE) 
+  {
+    Input = temp_Input;
+    read_cycle = 0;
+  }
+  else
+    read_cycle++;
 
   print_setpoint = Setpoint;
   print_input = Input;
-
-//utilizzo il PID solo all'interno del range impostato  
-  if (Setpoint < Input - TEMPERATURE_GAP)
-  {
-    analogWrite(PWM_pin, 0);
-    print_output = 0;
-  }
-  
-  else if (Setpoint > Input + TEMPERATURE_GAP)
-  {
-    analogWrite(PWM_pin, 255);
-    print_output = 255;
-  }
-
-  else
-  {
-    Output = PID(Setpoint, Input);
-    analogWrite(PWM_pin, Output);
-    print_output = Output;
-  }
   
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
@@ -166,12 +163,24 @@ void loop()
     int temp_kp = int(Kp * 100);
     int temp_ki = int(Ki * 100);
     int temp_kd = int(Kd * 100);
-    sprintf(buff, "Kp: %4d  Ki: %4d  Kd: %4d  ", temp_kp, temp_ki, temp_kd);
+    sprintf(buff, "Kp:%4d Ki:%4d", temp_kp, temp_ki);
     oled.cursorTo(5, 4);
     oled.printString(buff);
 
+    sprintf(buff, "Kd:%4d", temp_kd);
+    oled.cursorTo(5, 5);
+    oled.printString(buff);
+
+    sprintf(buff, "C.T.: %d       ", cycle_time);
+    oled.cursorTo(5, 7);
+    oled.printString(buff);
+    
     last_time = millis();
   }
+
+//calcolo tempo ciclo
+  cycle_time = int(micros() - last_cycle_time);
+  last_cycle_time = micros();
   
   wdt_reset();
 }
