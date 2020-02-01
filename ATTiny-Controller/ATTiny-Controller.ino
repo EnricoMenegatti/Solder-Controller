@@ -77,7 +77,7 @@ float Lower_D_limit = 0;
 float Upper_Total_limit = 255;
 float Lower_Total_limit = 0;
 
-float Kp = 0;
+float Kp = 15;
 float Ki = 0;
 float Kd = 0;
 
@@ -130,7 +130,7 @@ void setup()
 void loop() 
 {
   Setpoint = 300;
-  Kp = analogRead(ADC_CMD_pin) / 50.0;
+  Ki = analogRead(ADC_CMD_pin) / 500.0;
 
 //controllo sul valore letto in input per evitare disturbi
   temp_Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
@@ -171,16 +171,12 @@ void loop()
     oled.cursorTo(5, 5);
     oled.printString(buff);
 
-    sprintf(buff, "C.T.: %d       ", cycle_time);
+    sprintf(buff, "C.T.: %d    ", cycle_time);
     oled.cursorTo(5, 7);
     oled.printString(buff);
     
     last_time = millis();
   }
-
-//calcolo tempo ciclo
-  cycle_time = int(micros() - last_cycle_time);
-  last_cycle_time = micros();
   
   wdt_reset();
 }
