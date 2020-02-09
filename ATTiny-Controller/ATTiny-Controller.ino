@@ -44,8 +44,8 @@ int level;
 //2. 760 - 495
 //m = dy / dx = 1.148
 //q = (x2y1 - x1y2) / (x2 - x1) = -377.526
-float INPUT_MUL = 1.148;
-int INPUT_ADD = -377;
+float INPUT_MUL = 11.48;
+int INPUT_ADD = -3770;
 
 //Formula retta per scalatura temperatura di comando
 //Y = mX + q
@@ -54,8 +54,8 @@ int INPUT_ADD = -377;
 //2.1000 - 450
 //m = dy / dx = 0.2559
 //q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
-float SETPOINT_MUL = 0.2559;
-int SETPOINT_ADD = 194;
+float SETPOINT_MUL = 2.559;
+int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
@@ -63,7 +63,7 @@ int SETPOINT_ADD = 194;
 int temp_return, read_cycle;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 20
+#define TEMPERATURE_GAP 200
 
 float Upper_P_limit = 255;
 float Lower_P_limit = 0;
@@ -77,8 +77,8 @@ float Lower_D_limit = 0;
 float Upper_Total_limit = 255;
 float Lower_Total_limit = 0;
 
-float Kp = 15;
-float Ki = 0;
+float Kp = 1;
+float Ki = 0.1;
 float Kd = 0;
 
 int Setpoint, Input, Output;
@@ -129,8 +129,8 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = 300;
-  Ki = analogRead(ADC_CMD_pin) / 500.0;
+  Setpoint = 3500;
+  Kd = analogRead(ADC_CMD_pin) / 100.0;
 
 //controllo sul valore letto in input per evitare disturbi
   temp_Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
@@ -148,11 +148,11 @@ void loop()
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
   { 
-    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
+    sprintf(buff, "Setpoint: %4d  ", print_setpoint);
     oled.cursorTo(5, 1);
     oled.printString(buff);
   
-    sprintf(buff, "Input: %3d  ", print_input);
+    sprintf(buff, "Input: %4d  ", print_input);
     oled.cursorTo(5, 2);
     oled.printString(buff);
   
