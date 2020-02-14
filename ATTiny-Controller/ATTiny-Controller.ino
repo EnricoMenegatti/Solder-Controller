@@ -64,18 +64,22 @@ int temp_return, read_cycle;
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 200
+#define UPPER_LIMIT 255
+#define LOWER_LIMIT 0
 
-float Upper_P_limit = 255;
-float Lower_P_limit = 0;
+int pid_preset = 20;
 
-float Upper_I_limit = 255;
-float Lower_I_limit = 0;
+float Upper_P_limit = UPPER_LIMIT - pid_preset;
+float Lower_P_limit = LOWER_LIMIT - pid_preset;
 
-float Upper_D_limit = 255;
-float Lower_D_limit = 0;
+float Upper_I_limit = UPPER_LIMIT - pid_preset;
+float Lower_I_limit = LOWER_LIMIT - pid_preset;
 
-float Upper_Total_limit = 255;
-float Lower_Total_limit = 0;
+float Upper_D_limit = UPPER_LIMIT - pid_preset;
+float Lower_D_limit = LOWER_LIMIT - pid_preset;
+
+float Upper_Total_limit = UPPER_LIMIT - pid_preset;
+float Lower_Total_limit = LOWER_LIMIT - pid_preset;
 
 float Kp = 1;
 float Ki = 0.1;
@@ -142,17 +146,17 @@ void loop()
   else
     read_cycle++;
 
-  print_setpoint = Setpoint;
-  print_input = Input;
+  print_setpoint = Setpoint / 10;
+  print_input = Input / 10;
   
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
   { 
-    sprintf(buff, "Setpoint: %4d  ", print_setpoint);
+    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
     oled.cursorTo(5, 1);
     oled.printString(buff);
   
-    sprintf(buff, "Input: %4d  ", print_input);
+    sprintf(buff, "Input: %3d  ", print_input);
     oled.cursorTo(5, 2);
     oled.printString(buff);
   

@@ -3,21 +3,26 @@
 #include <stdlib.h>
 #include <windows.h>
 
-float Upper_P_limit = 255;
-float Lower_P_limit = -255;
+#define UPPER_LIMIT 255
+#define LOWER_LIMIT 0
 
-float Upper_I_limit = 255;
-float Lower_I_limit = -255;
+int pid_preset = 20;
 
-float Upper_D_limit = 255;
-float Lower_D_limit = -255;
+float Upper_P_limit = UPPER_LIMIT - pid_preset;
+float Lower_P_limit = LOWER_LIMIT - pid_preset;
 
-float Upper_Total_limit = 255;
-float Lower_Total_limit = -255;
+float Upper_I_limit = UPPER_LIMIT - pid_preset;
+float Lower_I_limit = LOWER_LIMIT - pid_preset;
 
-float Kp = 10;
-float Ki = 1;
-float Kd = 2;
+float Upper_D_limit = UPPER_LIMIT - pid_preset;
+float Lower_D_limit = LOWER_LIMIT - pid_preset;
+
+float Upper_Total_limit = UPPER_LIMIT - pid_preset;
+float Lower_Total_limit = LOWER_LIMIT - pid_preset;
+
+float Kp = 1;
+float Ki = 0.1;
+float Kd = 0.2;
 
 int Setpoint, Input, Output;
 
@@ -75,7 +80,7 @@ int PID(int val_SET, int val_IN)
   if ( Out > Upper_Total_limit) Out = Upper_Total_limit;
   if (Out < Lower_Total_limit) Out = Lower_Total_limit;
 
-  val_OUT = Out;
+  val_OUT = Out + pid_preset;
   return(val_OUT);
 } 
 
@@ -92,15 +97,15 @@ int main(int argc, char** argv)
 	while(1)
 	{	
 		temp_out = Output;
-		temp_int += (temp_out / 10);
+		temp_int += (temp_out);
 		Input = int(temp_int);
 		
-		if (Setpoint < Input - 30)
+		if (Setpoint < Input - 300)
 		{
-			Output = -255;
+			Output = 0;
 		}
 		
-		else if (Setpoint > Input + 30)
+		else if (Setpoint > Input + 300)
 		{
 			Output = 255;
 		}
@@ -111,9 +116,9 @@ int main(int argc, char** argv)
 		}
 		
 		printf("Output: %3d  ,Input: %3d  \n", Output, Input);
-		Sleep(400);
+		Sleep(300);
 		
-		temp_int += rand() % 10;
+		temp_int -= rand() % 100;
 	}
 	return 0;
 }

@@ -52,6 +52,6 @@ int PID(int val_SET, int val_IN)
   if (Out > Upper_Total_limit) Out = Upper_Total_limit;
   if (Out < Lower_Total_limit) Out = Lower_Total_limit;
 
-  val_OUT = int(Out);
+  val_OUT = int(Out) + pid_preset;
   return(val_OUT);
 }
