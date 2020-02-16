@@ -63,39 +63,22 @@ int SETPOINT_ADD = 1940;
 int temp_return, read_cycle;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 200
-#define UPPER_LIMIT 255
-#define LOWER_LIMIT 0
+#define TEMPERATURE_GAP 300
 
-int pid_preset = 20;
+float Upper_Total_limit = 255;
+float Lower_Total_limit = 0;
 
-float Upper_P_limit = UPPER_LIMIT - pid_preset;
-float Lower_P_limit = LOWER_LIMIT - pid_preset;
+float Kp = 0.5;
+float Ki = 0.001;
+float Kd = 0.3;
 
-float Upper_I_limit = UPPER_LIMIT - pid_preset;
-float Lower_I_limit = LOWER_LIMIT - pid_preset;
+float P = 0; /* componente proporzionale */
+float I = 0; /* componente integrale */
+float D = 0; /* componente differenziale */
 
-float Upper_D_limit = UPPER_LIMIT - pid_preset;
-float Lower_D_limit = LOWER_LIMIT - pid_preset;
-
-float Upper_Total_limit = UPPER_LIMIT - pid_preset;
-float Lower_Total_limit = LOWER_LIMIT - pid_preset;
-
-float Kp = 1;
-float Ki = 0.1;
-float Kd = 0;
+int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
 
 int Setpoint, Input, Output;
-/*
-double Kp = 1;
-double Ki = 0.05;
-double Kd = 0.25;
-
-//Define Variables we'll be connecting to
-double Setpoint, Input, Output;
-
-//Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);*/
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -134,17 +117,9 @@ void setup()
 void loop() 
 {
   Setpoint = 3500;
-  Kd = analogRead(ADC_CMD_pin) / 100.0;
 
 //controllo sul valore letto in input per evitare disturbi
-  temp_Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
-  if (abs(temp_Input - Input) < TEMPERATURE_GAP || read_cycle > MAX_READ_CYCLE) 
-  {
-    Input = temp_Input;
-    read_cycle = 0;
-  }
-  else
-    read_cycle++;
+  Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
 
   print_setpoint = Setpoint / 10;
   print_input = Input / 10;
@@ -164,14 +139,14 @@ void loop()
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
-    int temp_kp = int(Kp * 100);
-    int temp_ki = int(Ki * 100);
-    int temp_kd = int(Kd * 100);
-    sprintf(buff, "Kp:%4d Ki:%4d", temp_kp, temp_ki);
+    int temp_kp = int(P);
+    int temp_ki = int(I);
+    int temp_kd = int(D);
+    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
     oled.cursorTo(5, 4);
     oled.printString(buff);
 
-    sprintf(buff, "Kd:%4d", temp_kd);
+    sprintf(buff, "D:%5d", temp_kd);
     oled.cursorTo(5, 5);
     oled.printString(buff);
 
