@@ -1,8 +1,10 @@
-#include "PID_v1.h"
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
+unsigned long last_cycle_time;
+int cycle_time;
+  
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
 
@@ -41,8 +43,8 @@ int level;
 //2. 760 - 495
 //m = dy / dx = 1.148
 //q = (x2y1 - x1y2) / (x2 - x1) = -377.526
-float INPUT_MUL = 1.148;
-int INPUT_ADD = -377;
+float INPUT_MUL = 11.48;
+int INPUT_ADD = -3770;
 
 //Formula retta per scalatura temperatura di comando
 //Y = mX + q
@@ -51,25 +53,30 @@ int INPUT_ADD = -377;
 //2.1000 - 450
 //m = dy / dx = 0.2559
 //q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
-float SETPOINT_MUL = 0.2559;
-int SETPOINT_ADD = 194;
+float SETPOINT_MUL = 2.559;
+int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
 int temp_return;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 20
+#define TEMPERATURE_GAP 300
 
-double Kp = 1;
-double Ki = 0.05;
-double Kd = 0.25;
+float Upper_Total_limit = 255;
+float Lower_Total_limit = 0;
 
-//Define Variables we'll be connecting to
-double Setpoint, Input, Output;
+float Kp = 0.5;
+float Ki = 0.001;
+float Kd = 0.3;
 
-//Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+float P = 0; /* componente proporzionale */
+float I = 0; /* componente integrale */
+float D = 0; /* componente differenziale */
+
+int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
+
+int Setpoint, Input, Output;
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -86,12 +93,6 @@ void initDISPLAY()
   oled.clear();
 }
 
-void initPID()
-{
-  //turn the PID on
-  myPID.SetMode(AUTOMATIC);
-}
-
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
@@ -100,46 +101,28 @@ void setup()
   
   pinMode(PWM_pin, OUTPUT);
   
-  initPID();
   initDISPLAY();
+  initINTERRUPT();
 
   last_time = millis();
+  last_cycle_time = micros();
 
   wdt_enable(WDTO_1S);
+  sei(); //enable interrupts
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
   Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
-  Input = INPUT_MUL * analogRead(ADC_TEMP_pin) +  INPUT_ADD;
-  
 //limiti di temperatura
   if (Setpoint < 200) Setpoint = 200;
   if (Setpoint > 450) Setpoint = 450;
 
-  print_setpoint = (int(Setpoint) / 5) * 5;
-  print_input = (int(Input) / 5) * 5;
+  Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
 
-//utilizzo il PID solo all'interno del range impostato  
-  if (Setpoint < Input - TEMPERATURE_GAP)
-  {
-    analogWrite(PWM_pin, 0);
-    print_output = 0;
-  }
-  
-  else if (Setpoint > Input + TEMPERATURE_GAP)
-  {
-    analogWrite(PWM_pin, 255);
-    print_output = 255;
-  }
-
-  else
-  {
-    myPID.Compute();
-    analogWrite(PWM_pin, Output);
-    print_output = int(Output);
-  }
+  print_setpoint = Setpoint / 10;
+  print_input = Input / 10;
   
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
@@ -156,6 +139,21 @@ void loop()
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
+    int temp_kp = int(P);
+    int temp_ki = int(I);
+    int temp_kd = int(D);
+    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
+    oled.cursorTo(5, 4);
+    oled.printString(buff);
+
+    sprintf(buff, "D:%5d", temp_kd);
+    oled.cursorTo(5, 5);
+    oled.printString(buff);
+
+    sprintf(buff, "C.T.: %d    ", cycle_time);
+    oled.cursorTo(5, 7);
+    oled.printString(buff);
+    
     last_time = millis();
   }
   
