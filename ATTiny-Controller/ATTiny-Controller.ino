@@ -114,10 +114,10 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = SETPOINT_MUL * analogRead(ADC_CMD_pin) + SETPOINT_ADD;
+  Setpoint = int(SETPOINT_MUL * analogRead(ADC_CMD_pin)) + SETPOINT_ADD;
 //limiti di temperatura
-  if (Setpoint < 200) Setpoint = 200;
-  if (Setpoint > 450) Setpoint = 450;
+  if (Setpoint < 2000) Setpoint = 2000;
+  if (Setpoint > 4500) Setpoint = 4500;
 
   Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
 
