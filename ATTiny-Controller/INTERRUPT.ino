@@ -33,10 +33,6 @@ ISR(TIMER1_COMPA_vect)
 
   analogWrite(PWM_pin, Output);
   print_output = Output;
-  
-//calcolo tempo ciclo
-  cycle_time = int(micros() - last_cycle_time);
-  last_cycle_time = micros();
 
   TCNT1 = 2; //preset timer register
 }

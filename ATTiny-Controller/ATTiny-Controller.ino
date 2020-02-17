@@ -1,9 +1,6 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
-
-unsigned long last_cycle_time;
-int cycle_time;
   
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
@@ -105,7 +102,6 @@ void setup()
   initINTERRUPT();
 
   last_time = millis();
-  last_cycle_time = micros();
 
   wdt_enable(WDTO_1S);
   sei(); //enable interrupts
@@ -153,10 +149,6 @@ void loop()
 
     sprintf(buff, "D:%5d", temp_kd);
     oled.cursorTo(5, 5);
-    oled.printString(buff);
-
-    sprintf(buff, "C.T.: %d    ", cycle_time);
-    oled.cursorTo(5, 7);
     oled.printString(buff);
     
     last_time = millis();
