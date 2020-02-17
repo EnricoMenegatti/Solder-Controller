@@ -38,9 +38,11 @@ int PID(int val_SET, int val_IN)
 
   Out = P + I + D;
 
-  if (Out > Upper_Total_limit) Out = Upper_Total_limit;
-  if (Out < Lower_Total_limit) Out = Lower_Total_limit;
+  val_OUT = int(Out) + PID_Preset;
 
-  val_OUT = int(Out);
+//limito i valori PID ai valori accettati dall'uscita analogica
+  if (val_OUT > Upper_PID_limit) val_OUT = Upper_PID_limit;
+  if (val_OUT < Lower_PID_limit) val_OUT = Lower_PID_limit;
+
   return(val_OUT);
 }

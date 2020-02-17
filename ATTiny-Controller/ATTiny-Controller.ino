@@ -34,7 +34,6 @@ int temp_Input;
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1
-int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
 //Formula retta per scalatura lettura temperatura
@@ -59,24 +58,41 @@ int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
-#define MAX_READ_CYCLE 3
-int temp_return, read_cycle;
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 300
 
-float Upper_Total_limit = 255;
-float Lower_Total_limit = 0;
+//Formula retta per scalatura preset del PID
+//Y = mX + q
+//     X  -  Y
+//1. 2000 - 50
+//2. 3500 - 75
+//m = dy / dx = 0.01667
+//q = (x2y1 - x1y2) / (x2 - x1) = 16.6667
+float PID_Preset_MUL = 0.01667;
+int PID_Preset_ADD = 17;
+
+//Formula retta per scalatura il Kp
+//Y = mX + q
+//     X  -  Y
+//1.   5  - 0.2
+//2.  15  - 0.5
+//m = dy / dx = 0.03
+//q = (x2y1 - x1y2) / (x2 - x1) = 0.05
+float KP_MUL = 0.03;
+float KP_ADD = 0.05;
+
+int Upper_PID_limit = 255;
+int Lower_PID_limit = 0;
+int PID_Preset;
 
 float Kp = 0.5;
-float Ki = 0.001;
-float Kd = 0.3;
+float Ki = 0; //0.001; TEST RIMOZIONE D PERCHE' SECONDO FLAVIO NON NECESSARIO
+float Kd = 0; //0.3; TEST RIMOZIONE D PERCHE' SECONDO FLAVIO PORTA DISTURBI
 
-float P = 0; /* componente proporzionale */
-float I = 0; /* componente integrale */
-float D = 0; /* componente differenziale */
+float P, I, D;
 
-int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
+int old_error; /*differenza tra valore di consegna e valore reale @ z-1 */
 
 int Setpoint, Input, Output;
 
@@ -118,8 +134,13 @@ void loop()
 {
   Setpoint = 3500;
 
-//controllo sul valore letto in input per evitare disturbi
+//calcolo il preset del PID per garantire un valore minimo adeguato in output
+  PID_Preset = int(PID_Preset_MUL * Setpoint) + PID_Preset_ADD;
+
   Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
+
+//calcolo il KP in modo dinamico a seconda della distanza dal setpoint
+  Kp = (KP_MUL * abs(Setpoint - Input)) + KP_ADD;
 
   print_setpoint = Setpoint / 10;
   print_input = Input / 10;
