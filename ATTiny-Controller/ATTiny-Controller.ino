@@ -52,8 +52,8 @@ int INPUT_ADD = -3770;
 float SETPOINT_MUL = 2.559;
 int SETPOINT_ADD = 1940;
 
-#define ADC_CMD_pin A2
-#define ADC_TEMP_pin A3
+#define ADC_CMD_pin 2
+#define ADC_TEMP_pin 3
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 300
@@ -98,6 +98,7 @@ void setup()
   
   initDISPLAY();
   initINTERRUPT();
+  initADC();
 
   last_time = millis();
 
@@ -108,13 +109,13 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = int(SETPOINT_MUL * analogRead(ADC_CMD_pin)) + SETPOINT_ADD;
+  Setpoint = int(SETPOINT_MUL * readADC(ADC_CMD_pin)) + SETPOINT_ADD;
 //limiti di temperatura
   if (Setpoint < 2000) Setpoint = 2000;
   if (Setpoint > 4500) Setpoint = 4500;
   Setpoint = (Setpoint / 50) * 50;
 
-  Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
+  Input = int(INPUT_MUL * readADC(ADC_TEMP_pin)) + INPUT_ADD;
 
   print_setpoint = Setpoint / 10;
   print_input = (Input / 50) * 5;
