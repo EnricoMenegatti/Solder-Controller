@@ -29,7 +29,7 @@ int print_setpoint, print_input, print_output;
 #define REFRESH_TIME_MS 150 
 
 //PWM----------------------------------------------------------------------------------------------------------------------
-#define PWM_pin 1
+#define PWM_pin 1 //PB1
 
 //ADC----------------------------------------------------------------------------------------------------------------------
 //Formula retta per scalatura lettura temperatura
@@ -91,13 +91,15 @@ void initDISPLAY()
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
+  cli();
   MCUSR = 0x00; //resetta il registro di stato della MCU
   wdt_disable();
   
   pinMode(PWM_pin, OUTPUT);
   
   initDISPLAY();
-  initINTERRUPT();
+  initTIMER0();
+  initTIMER1();
   initADC();
 
   last_time = millis();
