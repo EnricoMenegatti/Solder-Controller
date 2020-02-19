@@ -30,7 +30,6 @@ int print_setpoint, print_input, print_output;
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1
-int level;
 
 //ADC----------------------------------------------------------------------------------------------------------------------
 //Formula retta per scalatura lettura temperatura
@@ -55,7 +54,6 @@ int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
-int temp_return;
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 300
@@ -114,20 +112,14 @@ void loop()
 //limiti di temperatura
   if (Setpoint < 2000) Setpoint = 2000;
   if (Setpoint > 4500) Setpoint = 4500;
+  Setpoint = (Setpoint / 50) * 50;
 
   Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
 
-  Setpoint = (Setpoint / 50) * 50;
-  if (Setpoint % 50 >= 25)
-    Setpoint += 50;
-
   print_setpoint = Setpoint / 10;
-/*
   print_input = (Input / 50) * 5;
   if (Input % 50 >= 25)
-    print_input += 5;*/
-
-  print_input = (Input / 10);
+    print_input += 5;
   
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
