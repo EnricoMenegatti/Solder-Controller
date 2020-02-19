@@ -117,13 +117,17 @@ void loop()
 
   Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
 
-  print_setpoint = (Setpoint / 50) * 5;
+  Setpoint = (Setpoint / 50) * 50;
   if (Setpoint % 50 >= 25)
-    print_setpoint += 5;
+    Setpoint += 50;
 
+  print_setpoint = Setpoint / 10;
+/*
   print_input = (Input / 50) * 5;
   if (Input % 50 >= 25)
-    print_input += 5;
+    print_input += 5;*/
+
+  print_input = (Input / 10);
   
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
