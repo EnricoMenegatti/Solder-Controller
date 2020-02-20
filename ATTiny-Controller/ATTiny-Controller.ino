@@ -1,6 +1,7 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
   
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
@@ -72,7 +73,7 @@ float D = 0; /* componente differenziale */
 int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
 
 int Setpoint, Input, Output;
-
+int ADC_raw;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
@@ -96,14 +97,17 @@ void setup()
   wdt_disable();
   
   pinMode(PWM_pin, OUTPUT);
+  pinMode(ADC_CMD_pin, INPUT);
   
   initDISPLAY();
-  initTIMER0();
-  initTIMER1();
+//  initTIMER0();
+//  initTIMER1();
   initADC();
 
   last_time = millis();
 
+  //
+  
   wdt_enable(WDTO_1S);
   sei(); //enable interrupts
 }
@@ -111,19 +115,25 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Setpoint = int(SETPOINT_MUL * readADC(ADC_CMD_pin)) + SETPOINT_ADD;
+  //print_output = readADC(ADC_CMD_pin);
+//  Setpoint = int(SETPOINT_MUL * readADC(ADC_CMD_pin)) + SETPOINT_ADD;
 //limiti di temperatura
   if (Setpoint < 2000) Setpoint = 2000;
   if (Setpoint > 4500) Setpoint = 4500;
   Setpoint = (Setpoint / 50) * 50;
 
-  Input = int(INPUT_MUL * readADC(ADC_TEMP_pin)) + INPUT_ADD;
+//  Input = int(INPUT_MUL * readADC(ADC_TEMP_pin)) + INPUT_ADD;
 
-  print_setpoint = Setpoint / 10;
-  print_input = (Input / 50) * 5;
-  if (Input % 50 >= 25)
-    print_input += 5;
+    print_input += 1;
+
+    sprintf(buff, "Input: %3d  ", print_input);
+    oled.cursorTo(5, 2);
+    oled.printString(buff);
   
+    sprintf(buff, "Output: %3d  ", ADC_raw);
+    oled.cursorTo(5, 3);
+    oled.printString(buff);
+    /*
 //stampo parametri ogni "REFRESH_TIME_MS"
   if (millis() - last_time >= REFRESH_TIME_MS) 
   { 
@@ -135,7 +145,7 @@ void loop()
     oled.cursorTo(5, 2);
     oled.printString(buff);
   
-    sprintf(buff, "Output: %3d  ", print_output);
+    sprintf(buff, "Output: %3d  ", ADC_raw);
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
@@ -152,6 +162,6 @@ void loop()
     
     last_time = millis();
   }
-  
+  */
   wdt_reset();
 }
