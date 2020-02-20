@@ -1,4 +1,4 @@
-void initTIMER0()
+void initTIMER0() //Timer to set Output value
 {
 /*  single time[s] = (1 / (clock[hz] / prescaler)) * 2
     single time = (1 / (16000000 / 1024)) * 2 = 0,000128ms
@@ -32,24 +32,14 @@ void initTIMER1()
 
 ISR(TIMER0_COMPA_vect)
 {
-//utilizzo il PID solo all'interno del range impostato  
-  if (Setpoint < Input - TEMPERATURE_GAP)
-  {
-    Output = 0;
-  }
-  
-  else if (Setpoint > Input + TEMPERATURE_GAP)
-  {
-    Output = 255;
-  }
+    cli();
+    if (Timer0_cont >= 500)
+    {
+        OCR1A = Output; //Write PWM value
+        Timer0_cont = 0;
+    }
 
-  else
-  {
-    Output = PID(Setpoint, Input);
-  }
-
-  OCR1A = Output; //Write PWM value
-  print_output = Output;
-
-  TCNT1 = 2; //preset timer register
+    Timer0_cont ++;
+    TCNT1 = 2; //preset timer register
+    sei();
 }
