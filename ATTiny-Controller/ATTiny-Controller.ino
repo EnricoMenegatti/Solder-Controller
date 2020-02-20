@@ -1,6 +1,5 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
-#include <avr/wdt.h>
 #include <avr/interrupt.h>
   
 //DISPLAY------------------------------------------------------------------------------------------------------------------
@@ -25,54 +24,11 @@ const unsigned char solder_logo [] PROGMEM = {
 };
 
 char buff[20];
-unsigned long last_time;
-int print_setpoint, print_input, print_output;
-#define REFRESH_TIME_MS 150 
-
-//PWM----------------------------------------------------------------------------------------------------------------------
-#define PWM_pin 1 //PB1
-
-//ADC----------------------------------------------------------------------------------------------------------------------
-//Formula retta per scalatura lettura temperatura
-//Y = mX + q
-//    X  -  Y
-//1. 460 - 151
-//2. 760 - 495
-//m = dy / dx = 1.148
-//q = (x2y1 - x1y2) / (x2 - x1) = -377.526
-float INPUT_MUL = 11.48;
-int INPUT_ADD = -3770;
-
-//Formula retta per scalatura temperatura di comando
-//Y = mX + q
-//    X  -  Y
-//1.  23 - 200
-//2.1000 - 450
-//m = dy / dx = 0.2559
-//q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
-float SETPOINT_MUL = 2.559;
-int SETPOINT_ADD = 1940;
+int print_input;
 
 #define ADC_CMD_pin 2
 #define ADC_TEMP_pin 3
 
-//PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 300
-
-float Upper_Total_limit = 255;
-float Lower_Total_limit = 0;
-
-float Kp = 0.5;
-float Ki = 0.001;
-float Kd = 0.3;
-
-float P = 0; /* componente proporzionale */
-float I = 0; /* componente integrale */
-float D = 0; /* componente differenziale */
-
-int old_error = 0; /*differenza tra valore di consegna e valore reale @ z-1 */
-
-int Setpoint, Input, Output;
 int ADC_raw;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -92,76 +48,24 @@ void initDISPLAY()
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
-  cli();
-  MCUSR = 0x00; //resetta il registro di stato della MCU
-  wdt_disable();
-  
-  pinMode(PWM_pin, OUTPUT);
   pinMode(ADC_CMD_pin, INPUT);
   
   initDISPLAY();
-//  initTIMER0();
-//  initTIMER1();
   initADC();
-
-  last_time = millis();
-
-  //
-  
-  wdt_enable(WDTO_1S);
-  sei(); //enable interrupts
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  //print_output = readADC(ADC_CMD_pin);
-//  Setpoint = int(SETPOINT_MUL * readADC(ADC_CMD_pin)) + SETPOINT_ADD;
-//limiti di temperatura
-  if (Setpoint < 2000) Setpoint = 2000;
-  if (Setpoint > 4500) Setpoint = 4500;
-  Setpoint = (Setpoint / 50) * 50;
-
-//  Input = int(INPUT_MUL * readADC(ADC_TEMP_pin)) + INPUT_ADD;
-
     print_input += 1;
 
-    sprintf(buff, "Input: %3d  ", print_input);
-    oled.cursorTo(5, 2);
+    sprintf(buff, "%d  ", print_input);
+    oled.cursorTo(0, 0);
     oled.printString(buff);
   
-    sprintf(buff, "Output: %3d  ", ADC_raw);
-    oled.cursorTo(5, 3);
-    oled.printString(buff);
-    /*
-//stampo parametri ogni "REFRESH_TIME_MS"
-  if (millis() - last_time >= REFRESH_TIME_MS) 
-  { 
-    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
-    oled.cursorTo(5, 1);
-    oled.printString(buff);
-  
-    sprintf(buff, "Input: %3d  ", print_input);
-    oled.cursorTo(5, 2);
-    oled.printString(buff);
-  
-    sprintf(buff, "Output: %3d  ", ADC_raw);
+    sprintf(buff, "ADC:   %d    ", ADC_raw);
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
-    int temp_kp = int(P);
-    int temp_ki = int(I);
-    int temp_kd = int(D);
-    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
-    oled.cursorTo(5, 4);
-    oled.printString(buff);
-
-    sprintf(buff, "D:%5d", temp_kd);
-    oled.cursorTo(5, 5);
-    oled.printString(buff);
-    
-    last_time = millis();
-  }
-  */
-  wdt_reset();
+    delay(50);
 }
