@@ -57,6 +57,8 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
+    ADCSRA |= (1 << ADSC);
+    
     print_input += 1;
 
     sprintf(buff, "%d  ", print_input);
@@ -67,5 +69,5 @@ void loop()
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
-    delay(50);
+    delay(1);
 }
