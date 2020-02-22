@@ -1,12 +1,10 @@
 void initTIMER0() //Timer to set Output value
 {
-    /*  single time[s] = (1 / (clock[hz] / prescaler)) * 2
-    single time = (1 / (16000000 / 1024)) * 2 = 0,000128ms
+    /*  single time[s] = ((1 / clock[hz]) * prescaler) * 2
+    single time = ((1 / 8000000) * 64) * 2 = 0,000016s
     prescaler = clock[hz] * single time[s]
     final time = OCR1C * ((1 / (clock[hz] / prescaler)) * 2 )
-    final time = 156 * 0,000128 = 0,019968ms
-    REQUEST TIME = final time * counter
-    REQUEST TIME = 0,019968 * 501 = 10,003968ms
+    final time = 125 * 0,000016 = 0,002s
     */
     GTCCR = (0 << TSM) |
             (0 << PSR0); //Prescaler Reset Timer/Counter0
@@ -21,11 +19,11 @@ void initTIMER0() //Timer to set Output value
     TCCR0B = (0 << FOC0A) | //Force Output Compare A
              (0 << FOC0B) | //Force Output Compare B
              (0 << WGM02) | //Set normal mode
-             (1 << CS02) | //Set clocl prescale to 1024
-             (0 << CS01) | //Set clocl prescale to 1024
-             (1 << CS00);  //Set clocl prescale to 1024
+             (0 << CS02) | //Set clocl prescale to 64
+             (1 << CS01) | //Set clocl prescale to 64
+             (1 << CS00);  //Set clocl prescale to 64
 
-    OCR0A = 156; //Compare match value 
+    OCR0A = 125; //Compare match value 
 
     TIMSK = (1 << OCIE0A) | //Compare Match A Interrupt Enable
             (0 << OCIE0B) | //Compare Match B Interrupt Enable
@@ -50,31 +48,31 @@ void initTIMER1()
             (0 << CS11) | //No clock prescale
             (1 << CS10);  //No clock prescale
 
-    GTCCR = (0 << PWM1B) | //Pulse Width Modulator B Enable
+    /*GTCCR &= (0 << PWM1B) | //Pulse Width Modulator B Enable
             (0 << COM1A1) | //OC1A not connected
             (0 << COM1A0) | //OC1A not connected
             (0 << FOC1B) | //Force Output Compare Match 1B
             (0 << FOC1A) | //Force Output Compare Match 1B
-            (0 << PSR1); //Prescaler Reset Timer/Counter1
+            (0 << PSR1); //Prescaler Reset Timer/Counter1*/
 
     OCR1C = 0xFF; //Set compare match value
 
-    TIMSK = (0 << OCIE1A) | //Timer/Counter1 Output Compare Interrupt Enable
+   /* TIMSK &= (0 << OCIE1A) | //Timer/Counter1 Output Compare Interrupt Enable
             (0 << OCIE1B) | //Timer/Counter1 Output Compare Interrupt Enable
-            (0 << TOIE1); //Timer/Counter1 Overflow Interrupt Enable
+            (0 << TOIE1); //Timer/Counter1 Overflow Interrupt Enable*/
 }
 
 
-ISR(TIMER0_COMPA_vect)
+ISR(TIM0_COMPA_vect)
 {
-    cli();
-    if (Timer0_cont >= 500)
+    if (Timer0_cont >= 5)
     {
         OCR1A = Output; //Write PWM value
         Timer0_cont = 0;
+        
+        temp += 1;
     }
 
-    Timer0_cont ++;
-    TCNT1 = 2; //preset timer register
-    sei();
+    Timer0_cont += 1;
+    //TCNT0 = 2; //preset timer register
 }

@@ -26,10 +26,13 @@ const unsigned char solder_logo [] PROGMEM = {
 char buff[20];
 int print_input;
 
+#define DELAY_CORR 1000
+
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1 //PB1
 
-int Output, Timer0_cont;
+int Output, Timer0_cont, temp;
+unsigned long last_time;
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -49,13 +52,12 @@ void initDISPLAY()
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 { 
-	cli()
 	pinMode(PWM_pin, OUTPUT);
 
 	initDISPLAY();
 	initTIMER0();
 	initTIMER1();
-
+  
 	sei(); //enable interrupts
 }
 
@@ -63,14 +65,21 @@ void setup()
 void loop() 
 {
     print_input += 1;
+    Output += 1;
+
+    if (Output >= 255) Output = 0;
 
     sprintf(buff, "%d  ", print_input);
     oled.cursorTo(0, 0);
     oled.printString(buff);
   
-    sprintf(buff, "Output:   %d   ", Output);
+    sprintf(buff, "Output:   %d   ", int(OCR1A));
     oled.cursorTo(5, 3);
     oled.printString(buff);
+    
+    sprintf(buff, "%7d  ", temp);
+    oled.cursorTo(0, 6);
+    oled.printString(buff);
 
-    delay(50);
+    delay(5 * DELAY_CORR);
 }
