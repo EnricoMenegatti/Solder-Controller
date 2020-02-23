@@ -26,13 +26,10 @@ const unsigned char solder_logo [] PROGMEM = {
 char buff[20];
 int print_input;
 
-#define DELAY_CORR 1000
-
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1 //PB1
 
-int Output, Timer0_cont, temp;
-unsigned long last_time;
+unsigned long last_time, delay_cont;
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
@@ -47,6 +44,15 @@ void initDISPLAY()
 	delay(1500);
 
 	oled.clear();
+}
+
+void myDelay(int delay_time)
+{
+  while((delay_cont * 2) < delay_time)
+  {
+    sei();
+  }
+  delay_cont = 0;
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
@@ -81,5 +87,5 @@ void loop()
     oled.cursorTo(0, 6);
     oled.printString(buff);
 
-    delay(5 * DELAY_CORR);
+    myDelay(50);
 }

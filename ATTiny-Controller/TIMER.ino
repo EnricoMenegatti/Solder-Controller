@@ -69,10 +69,10 @@ ISR(TIM0_COMPA_vect)
     {
         OCR1A = Output; //Write PWM value
         Timer0_cont = 0;
-        
-        temp += 1;
+
+        temp ++;
     }
 
-    Timer0_cont += 1;
-    //TCNT0 = 2; //preset timer register
+    delay_cont ++;
+    Timer0_cont ++;
 }
