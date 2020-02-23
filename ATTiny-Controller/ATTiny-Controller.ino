@@ -29,7 +29,7 @@ int print_input;
 #define ADC_CMD_pin 2
 #define ADC_TEMP_pin 3
 
-int ADC_raw;
+int ADC_raw, pot, temp;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
@@ -47,9 +47,7 @@ void initDISPLAY()
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
-{
-  pinMode(ADC_CMD_pin, INPUT);
-  
+{  
   initDISPLAY();
   initADC();
 }
@@ -57,7 +55,11 @@ void setup()
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-    ADCSRA |= (1 << ADSC);
+    readADC(ADC_CMD_pin);
+    pot = ADC_raw;
+    delay(10);
+    readADC(ADC_TEMP_pin);
+    temp = ADC_raw;
     
     print_input += 1;
 
@@ -65,9 +67,13 @@ void loop()
     oled.cursorTo(0, 0);
     oled.printString(buff);
   
-    sprintf(buff, "ADC:   %d    ", ADC_raw);
+    sprintf(buff, "POT:%4d", pot);
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
-    delay(1);
+    sprintf(buff, "TEMP:%4d", temp);
+    oled.cursorTo(5, 4);
+    oled.printString(buff);
+
+    delay(10);
 }

@@ -4,10 +4,10 @@ void initADC()
   			(0 << REFS0) | //VCC used as Voltage Reference
   			(0 << ADLAR) | //ADC Right Adjust Result
   			(0 << REFS2) | //VCC used as Voltage Reference
-  			(0 << MUX3) | //Analog Channel adc2 - PB4
-  			(0 << MUX2) | //Analog Channel adc2 - PB4
-  			(1 << MUX1) | //Analog Channel adc2 - PB4
-  			(0 << MUX0);  //Analog Channel adc2 - PB4
+  			(0 << MUX3) | //Analog Channel
+  			(0 << MUX2) | //Analog Channel
+  			(0 << MUX1) | //Analog Channel
+  			(0 << MUX0);  //Analog Channel
   
   	ADCSRA = (1 << ADEN) | //ADC Enable
   			 (0 << ADSC) | //ADC Start Conversion
@@ -35,6 +35,23 @@ void initADC()
     sei();
 
     ADCSRA |= (1 << ADSC);
+}
+
+
+void readADC(int pin)
+{
+//Reset MUX bit
+  ADMUX &=~ (1 << MUX3) | 
+            (1 << MUX2) |
+            (1 << MUX1) |
+            (1 << MUX0);
+//Set MUX bit
+  ADMUX |= pin;
+//Start Conversion
+  ADCSRA |= (1 << ADSC);
+
+//Wait End of Conversion
+  while(ADCSRA & (1 << ADSC));
 }
 
 
