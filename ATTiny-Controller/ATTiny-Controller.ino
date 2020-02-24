@@ -1,7 +1,7 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
-  
+
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
 
@@ -29,7 +29,7 @@ int print_input;
 #define ADC_CMD_pin 2
 #define ADC_TEMP_pin 3
 
-int ADC_raw, pot, temp;
+int ADC_raw, pot, sol;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
@@ -46,32 +46,28 @@ void initDISPLAY()
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
-void setup() 
+void setup()
 {  
   initDISPLAY();
   initADC();
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
-void loop() 
+void loop()
 {
-    readADC(ADC_CMD_pin);
-    pot = ADC_raw;
-    delay(10);
-    readADC(ADC_TEMP_pin);
-    temp = ADC_raw;
-    
+    readADC();
+
     print_input += 1;
 
     sprintf(buff, "%d  ", print_input);
     oled.cursorTo(0, 0);
     oled.printString(buff);
-  
+
     sprintf(buff, "POT:%4d", pot);
     oled.cursorTo(5, 3);
     oled.printString(buff);
 
-    sprintf(buff, "TEMP:%4d", temp);
+    sprintf(buff, "TEMP:%4d", sol);
     oled.cursorTo(5, 4);
     oled.printString(buff);
 
