@@ -1,9 +1,6 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
-#include <avr/wdt.h>
-
-unsigned long last_cycle_time;
-int cycle_time;
+#include <avr/interrupt.h>
   
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
@@ -27,10 +24,10 @@ const unsigned char solder_logo [] PROGMEM = {
 };
 
 char buff[20];
-unsigned long last_time;
+unsigned long last_time, delay_cont;
 int print_setpoint, print_input, print_output;
 int temp_Input;
-#define REFRESH_TIME_MS 150 
+#define REFRESH_TIME_MS 150
 
 //PWM----------------------------------------------------------------------------------------------------------------------
 #define PWM_pin 1
@@ -93,40 +90,48 @@ float Kd = 0; //0.3; TEST RIMOZIONE D PERCHE' SECONDO FLAVIO PORTA DISTURBI
 float P, I, D;
 
 int old_error; /*differenza tra valore di consegna e valore reale @ z-1 */
-
 int Setpoint, Input, Output;
 
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
-  delay(1000);
-  oled.init(0x3c); //indirizzo del display
-  oled.startScreen();
-  oled.clear();
+	delay(1000);
+	oled.init(0x3c); //indirizzo del display
+	oled.startScreen();
+	oled.clear();
 
-  oled.drawImage(solder_logo, 5, 2, 123, 6);  //immagine, x, y, n° byte x, n° colonne byte
-//  oled.drawImage(solder_logo, 62, 2, 61, 6);  //immagine, x, y, n° byte x, n° colonne byte
-  delay(1500);
+	oled.drawImage(solder_logo, 5, 2, 123, 6);  //immagine, x, y, n° byte x, n° colonne byte
+	//  oled.drawImage(solder_logo, 62, 2, 61, 6);  //immagine, x, y, n° byte x, n° colonne byte
+	delay(1500);
 
-  oled.clear();
+	oled.clear();
+}
+
+void myDelay(int delay_time)
+{
+  while((delay_cont * 2) < delay_time)
+  {
+    sei();
+  }
+  delay_cont = 0;
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
-  MCUSR = 0x00; //resetta il registro di stato della MCU
-  wdt_disable();
-  
-  pinMode(PWM_pin, OUTPUT);
-  
-  initDISPLAY();
-  initINTERRUPT();
+	MCUSR = 0x00; //resetta il registro di stato della MCU
+  	wdt_disable();
 
-  last_time = millis();
-  last_cycle_time = micros();
+	pinMode(PWM_pin, OUTPUT);
 
-  wdt_enable(WDTO_1S);
-  sei(); //enable interrupts
+	initDISPLAY();
+	initTIMER0();
+	initTIMER1();
+
+	last_time = millis();
+  
+  	wdt_enable(WDTO_1S);
+	sei(); //enable interrupts
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
