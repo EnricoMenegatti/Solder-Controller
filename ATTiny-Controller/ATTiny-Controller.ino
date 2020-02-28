@@ -71,5 +71,17 @@ void loop()
     oled.cursorTo(5, 4);
     oled.printString(buff);
 
+    sprintf(buff, "ADCSRA:%8d", ADCSRA);
+    oled.cursorTo(5, 5);
+    oled.printString(buff);
+    sprintf(buff, "ADMUX:%8d", ADMUX);
+    oled.cursorTo(5, 6);
+    oled.printString(buff);
+
+int temp = (ADCSRA & (1<<ADIF));
+    sprintf(buff, "ADMUX:%8d", temp);
+    oled.cursorTo(5, 7 );
+    oled.printString(buff);
+
     delay(10);
 }

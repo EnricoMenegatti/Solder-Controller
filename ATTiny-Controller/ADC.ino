@@ -2,18 +2,18 @@ void initADC()
 {
   	ADMUX = (0 << REFS1) | //VCC used as Voltage Reference
   			(0 << REFS0) | //VCC used as Voltage Reference
-  			(0 << ADLAR) | //ADC Right Adjust Result
+  			(1 << ADLAR) | //ADC Left Adjust Result
   			(0 << REFS2) | //VCC used as Voltage Reference
   			(0 << MUX3) | //Analog Channel
   			(0 << MUX2) | //Analog Channel
-  			(0 << MUX1) | //Analog Channel
+  			(1 << MUX1) | //Analog Channel
   			(0 << MUX0);  //Analog Channel
 
   	ADCSRA = (1 << ADEN) | //ADC Enable
   			 (0 << ADSC) | //ADC Start Conversion
   			 (0 << ADATE) | //ADC Auto Trigger Enable
   			 (0 << ADIF) | //ADC Interrupt Flag
-  			 (1 << ADIE) | //ADC Interrupt Enable
+  			 (0 << ADIE) | //ADC Interrupt Enable
   			 (0 << ADPS2) | //ADC Prescale 128
   			 (0 << ADPS1) | //ADC Prescale 128
   			 (0 << ADPS0);  //ADC Prescale 128
@@ -27,7 +27,7 @@ void initADC()
 
   	DIDR0 = (0 << ADC0D) | //Digital Input Disable
   			(1 << ADC2D) | //Digital Input Disable
-  			(0 << ADC3D) | //Digital Input Disable
+  			(1 << ADC3D) | //Digital Input Disable
   			(0 << ADC1D) | //Digital Input Disable
   			(0 << AIN1D) |
   			(0 << AIN0D);
@@ -40,43 +40,52 @@ void initADC()
 
 void readADC()
 {
-//Set MUX bit ADC2 PB4
-  ADMUX = (0 << MUX3) |
-          (0 << MUX2) |
-          (1 << MUX1) |
-          (0 << MUX0);
+  if (ADCSRA & (1<<ADIF))
+  {
+    pot = ADCH;
+    ADCSRA |= (1 << ADIF);
+  }
+  
+  if (!(ADCSRA & (1<<ADSC)))
+  {
+    pot = ADCH; 
 
-//Start Conversion
-  ADCSRA |= (1 << ADSC);
-}
-
-
-ISR(ADC_vect)
-{
-    int temp;
-    switch (ADMUX)
+  //Set MUX bit ADC3 PB3            
+        ADMUX |= (1 << MUX1);
+        
+  //Start Conversion
+        ADCSRA |= (1 << ADSC);
+  /*switch (ADMUX)
     {
-      case 0x02:
-        temp = ADCL;
-      	pot = (ADCH << 8) | temp;
+      case 0x22:
+        pot = ADCH;
 
-  //Set MUX bit ADC3 PB3
-        ADMUX = (0 << MUX3) |
-                (0 << MUX2) |
-                (1 << MUX1) |
-                (1 << MUX0);
+  //Set MUX bit ADC3 PB3            
+        ADMUX |= (1 << MUX0);
+        
   //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
 
-      case 0x03:
-        temp = ADCL;
-      	sol = (ADCH << 8) | temp;
+      case 0x23:
+        sol = ADCH;
+        //Set MUX bit ADC2 PB4
+        ADMUX |= (1 << MUX1);
+        ADMUX &=~ (1 << MUX0);
+      
+      //Start Conversion
+        ADCSRA |= (1 << ADSC);
         break;
 
       default:
-        temp = ADCL;
-        ADC_raw = (ADCH << 8) | temp;
+        ADC_raw = ADCH;
+        //Set MUX bit ADC2 PB4
+        ADMUX |= (1 << MUX1);
+        ADMUX &=~ (1 << MUX0);
+      
+      //Start Conversion
+        ADCSRA |= (1 << ADSC);
         break;
-    }
+    }*/
+  }
 }
