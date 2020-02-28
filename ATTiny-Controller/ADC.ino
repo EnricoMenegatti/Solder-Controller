@@ -6,7 +6,7 @@ void initADC()
   			(0 << REFS2) | //VCC used as Voltage Reference
   			(0 << MUX3) | //Analog Channel
   			(0 << MUX2) | //Analog Channel
-  			(1 << MUX1) | //Analog Channel
+  			(0 << MUX1) | //Analog Channel
   			(0 << MUX0);  //Analog Channel
 
   	ADCSRA = (1 << ADEN) | //ADC Enable
@@ -40,39 +40,33 @@ void initADC()
 
 void readADC()
 {
-  if (ADCSRA & (1<<ADIF))
-  {
-    pot = ADCH;
-    ADCSRA |= (1 << ADIF);
-  }
-  
+//  if (ADCSRA & (1<<ADIF))
+//  {
+//    pot = ADCH;
+//    ADCSRA |= (1 << ADIF);
+//  }
+
   if (!(ADCSRA & (1<<ADSC)))
   {
-    pot = ADCH; 
-
-  //Set MUX bit ADC3 PB3            
-        ADMUX |= (1 << MUX1);
-        
-  //Start Conversion
-        ADCSRA |= (1 << ADSC);
-  /*switch (ADMUX)
+    switch (ADMUX & (1<<MUX0))
     {
-      case 0x22:
+      case 0: //ADC2 PB4
         pot = ADCH;
 
-  //Set MUX bit ADC3 PB3            
+  //Set MUX bit ADC3 PB3
         ADMUX |= (1 << MUX0);
-        
+
   //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
 
-      case 0x23:
+      case 1: //ADC3 PB3
         sol = ADCH;
+
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-      
+
       //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
@@ -82,10 +76,10 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-      
+
       //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
-    }*/
+    }
   }
 }
