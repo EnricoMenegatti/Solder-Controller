@@ -69,8 +69,6 @@ ISR(TIM0_COMPA_vect)
     {
         OCR1A = Output; //Write PWM value
         Timer0_cont = 0;
-
-        temp ++;
     }
 
     delay_cont ++;

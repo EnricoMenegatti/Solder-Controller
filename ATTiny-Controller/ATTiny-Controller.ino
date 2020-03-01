@@ -1,6 +1,7 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
@@ -26,7 +27,7 @@ const unsigned char solder_logo [] PROGMEM = {
 char buff[20];
 unsigned long last_time, delay_cont;
 int print_setpoint, print_input, print_output;
-int temp_Input;
+int Timer0_cont;
 #define REFRESH_TIME_MS 150
 
 //PWM----------------------------------------------------------------------------------------------------------------------
@@ -55,6 +56,9 @@ int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
+
+
+int ADC_raw, ADC_CMD, ADC_TEMP;
 
 //PID----------------------------------------------------------------------------------------------------------------------
 #define TEMPERATURE_GAP 300
@@ -92,7 +96,6 @@ float P, I, D;
 int old_error; /*differenza tra valore di consegna e valore reale @ z-1 */
 int Setpoint, Input, Output;
 
-int ADC_raw, pot, sol;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
@@ -121,7 +124,7 @@ void myDelay(int delay_time)
 void setup() 
 {
 	MCUSR = 0x00; //resetta il registro di stato della MCU
-  	wdt_disable();
+	wdt_disable();
 
 	pinMode(PWM_pin, OUTPUT);
 
@@ -129,10 +132,8 @@ void setup()
 	initADC();
 	initTIMER0();
 	initTIMER1();
-
-	last_time = millis();
   
-  	wdt_enable(WDTO_1S);
+  wdt_enable(WDTO_1S);
 	sei(); //enable interrupts
 }
 
@@ -140,12 +141,12 @@ void setup()
 void loop()
 {
   readADC();
-  Setpoint = 3500;
+  Setpoint = (SETPOINT_MUL * ADC_CMD) + SETPOINT_ADD;
 
 //calcolo il preset del PID per garantire un valore minimo adeguato in output
   PID_Preset = int(PID_Preset_MUL * Setpoint) + PID_Preset_ADD;
 
-  Input = int(INPUT_MUL * analogRead(ADC_TEMP_pin)) + INPUT_ADD;
+  Input = int(INPUT_MUL * ADC_TEMP) + INPUT_ADD;
 
 //calcolo il KP in modo dinamico a seconda della distanza dal setpoint
   Kp = (KP_MUL * abs(Setpoint - Input)) + KP_ADD;
@@ -154,8 +155,7 @@ void loop()
   print_input = Input / 10;
   
 //stampo parametri ogni "REFRESH_TIME_MS"
-  if (millis() - last_time >= REFRESH_TIME_MS) 
-  { 
+ 
     sprintf(buff, "Setpoint: %3d  ", print_setpoint);
     oled.cursorTo(5, 1);
     oled.printString(buff);
@@ -178,13 +178,7 @@ void loop()
     sprintf(buff, "D:%5d", temp_kd);
     oled.cursorTo(5, 5);
     oled.printString(buff);
-
-    sprintf(buff, "C.T.: %d    ", cycle_time);
-    oled.cursorTo(5, 7);
-    oled.printString(buff);
     
-    last_time = millis();
-  }
   
   wdt_reset();
 }

@@ -45,23 +45,29 @@ void readADC()
     switch (ADMUX & (1<<MUX0))
     {
       case 0: //ADC2 PB4
-        pot = ADCH;
+        ADC_CMD = ADCH;
 
   //Set MUX bit ADC3 PB3
         ADMUX |= (1 << MUX0);
-        _delay_us(10);
+        for(int i=0;i>=1000;i++)
+        {
+          
+        }
         
   //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
 
       case 1: //ADC3 PB3
-        sol = ADCH;
+        ADC_TEMP = ADCH;
 
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-        _delay_us(10);
+        for(int i=0;i>=1000;i++)
+        {
+          
+        }
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);
@@ -72,7 +78,10 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-        _delay_us(10);
+        for(int i=0;i>=1000;i++)
+        {
+          
+        }
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);
