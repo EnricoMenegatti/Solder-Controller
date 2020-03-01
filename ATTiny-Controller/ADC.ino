@@ -40,12 +40,6 @@ void initADC()
 
 void readADC()
 {
-//  if (ADCSRA & (1<<ADIF))
-//  {
-//    pot = ADCH;
-//    ADCSRA |= (1 << ADIF);
-//  }
-
   if (!(ADCSRA & (1<<ADSC)))
   {
     switch (ADMUX & (1<<MUX0))
@@ -55,7 +49,8 @@ void readADC()
 
   //Set MUX bit ADC3 PB3
         ADMUX |= (1 << MUX0);
-
+        _delay_us(10);
+        
   //Start Conversion
         ADCSRA |= (1 << ADSC);
         break;
@@ -66,6 +61,7 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
+        _delay_us(10);
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);
@@ -76,6 +72,7 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
+        _delay_us(10);
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);
