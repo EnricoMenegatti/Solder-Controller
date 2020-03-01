@@ -49,10 +49,7 @@ void readADC()
 
   //Set MUX bit ADC3 PB3
         ADMUX |= (1 << MUX0);
-        for(int i=0;i>=1000;i++)
-        {
-          
-        }
+        _delay_us(10);
         
   //Start Conversion
         ADCSRA |= (1 << ADSC);
@@ -64,10 +61,7 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-        for(int i=0;i>=1000;i++)
-        {
-          
-        }
+        _delay_us(10);
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);
@@ -78,10 +72,7 @@ void readADC()
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
-        for(int i=0;i>=1000;i++)
-        {
-          
-        }
+        _delay_us(10);
 
       //Start Conversion
         ADCSRA |= (1 << ADSC);

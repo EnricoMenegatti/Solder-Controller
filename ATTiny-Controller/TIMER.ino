@@ -67,7 +67,7 @@ ISR(TIM0_COMPA_vect)
 {
     if (Timer0_cont >= 5)
     {
-        OCR1A = Output; //Write PWM value
+        OCR1A = PID(Setpoint, Input); //Write PWM value
         Timer0_cont = 0;
     }
 

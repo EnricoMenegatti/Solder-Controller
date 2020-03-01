@@ -41,7 +41,7 @@ int Timer0_cont;
 //2. 760 - 495
 //m = dy / dx = 1.148
 //q = (x2y1 - x1y2) / (x2 - x1) = -377.526
-float INPUT_MUL = 11.48;
+float INPUT_MUL = 45.92;//valore moltiplicato 40 perchè portata precisione da 10bit a 8
 int INPUT_ADD = -3770;
 
 //Formula retta per scalatura temperatura di comando
@@ -51,7 +51,7 @@ int INPUT_ADD = -3770;
 //2.1000 - 450
 //m = dy / dx = 0.2559
 //q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
-float SETPOINT_MUL = 2.559;
+float SETPOINT_MUL = 10.236;//valore moltiplicato 40 perchè portata precisione da 10bit a 8
 int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
@@ -142,6 +142,8 @@ void loop()
 {
   readADC();
   Setpoint = (SETPOINT_MUL * ADC_CMD) + SETPOINT_ADD;
+  if(Setpoint < 2000) Setpoint = 2000;
+  if(Setpoint > 4500) Setpoint = 4500;
 
 //calcolo il preset del PID per garantire un valore minimo adeguato in output
   PID_Preset = int(PID_Preset_MUL * Setpoint) + PID_Preset_ADD;
@@ -154,31 +156,30 @@ void loop()
   print_setpoint = Setpoint / 10;
   print_input = Input / 10;
   
-//stampo parametri ogni "REFRESH_TIME_MS"
+//stampo parametri ogni "REFRESH_TIME_MS"                                                                                                                            
  
-    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
-    oled.cursorTo(5, 1);
-    oled.printString(buff);
-  
-    sprintf(buff, "Input: %3d  ", print_input);
-    oled.cursorTo(5, 2);
-    oled.printString(buff);
-  
-    sprintf(buff, "Output: %3d  ", print_output);
-    oled.cursorTo(5, 3);
-    oled.printString(buff);
+  sprintf(buff, "Setpoint: %3d  ", print_setpoint);
+  oled.cursorTo(5, 1);
+  oled.printString(buff);
 
-    int temp_kp = int(P);
-    int temp_ki = int(I);
-    int temp_kd = int(D);
-    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
-    oled.cursorTo(5, 4);
-    oled.printString(buff);
+  sprintf(buff, "Input: %3d  ", print_input);
+  oled.cursorTo(5, 2);
+  oled.printString(buff);
 
-    sprintf(buff, "D:%5d", temp_kd);
-    oled.cursorTo(5, 5);
-    oled.printString(buff);
+  sprintf(buff, "Output: %3d  ", print_output);
+  oled.cursorTo(5, 3);
+  oled.printString(buff);
+
+  int temp_kp = int(P);
+  int temp_ki = int(I);
+  int temp_kd = int(D);
+  sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
+  oled.cursorTo(5, 4);
+  oled.printString(buff);
+
+  sprintf(buff, "D:%5d", temp_kd);
+  oled.cursorTo(5, 5);
+  oled.printString(buff);
     
-  
   wdt_reset();
 }
