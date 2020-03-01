@@ -1,7 +1,7 @@
 #include "SSD1306_minimal.h"
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
-  
+
 //DISPLAY------------------------------------------------------------------------------------------------------------------
 SSD1306_Mini oled;
 
@@ -92,6 +92,7 @@ float P, I, D;
 int old_error; /*differenza tra valore di consegna e valore reale @ z-1 */
 int Setpoint, Input, Output;
 
+int ADC_raw, pot, sol;
 //FUNCTIONS----------------------------------------------------------------------------------------------------------------
 void initDISPLAY()
 {
@@ -125,6 +126,7 @@ void setup()
 	pinMode(PWM_pin, OUTPUT);
 
 	initDISPLAY();
+	initADC();
 	initTIMER0();
 	initTIMER1();
 
@@ -135,8 +137,9 @@ void setup()
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
-void loop() 
+void loop()
 {
+  readADC();
   Setpoint = 3500;
 
 //calcolo il preset del PID per garantire un valore minimo adeguato in output
