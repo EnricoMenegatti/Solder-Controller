@@ -80,8 +80,8 @@ int PID_Preset_ADD = 17;
 //2.  15  - 0.5
 //m = dy / dx = 0.03
 //q = (x2y1 - x1y2) / (x2 - x1) = 0.05
-float KP_MUL = 0.03;
-float KP_ADD = 0.05;
+float KP_MUL = 0.2;
+float KP_ADD = 0.3;
 
 int Upper_PID_limit = 255;
 int Lower_PID_limit = 0;
@@ -104,8 +104,8 @@ void initDISPLAY()
 	oled.startScreen();
 	oled.clear();
 
-	oled.drawImage(solder_logo, 5, 2, 123, 6);  //immagine, x, y, n° byte x, n° colonne byte
-	//  oled.drawImage(solder_logo, 62, 2, 61, 6);  //immagine, x, y, n° byte x, n° colonne byte
+	oled.drawImage(solder_logo, 5, 2, 123, 6); //immagine, x, y, n° byte x, n° colonne byte
+	//  oled.drawImage(solder_logo, 62, 2, 61, 6); //immagine, x, y, n° byte x, n° colonne byte
 	delay(1500);
 
   last_time = myMillis;
@@ -153,6 +153,7 @@ void loop()
 
 //calcolo il KP in modo dinamico a seconda della distanza dal setpoint
   Kp = (KP_MUL * abs(Setpoint - Input)) + KP_ADD;
+  if(Kp > 10) Kp = 10;
 
   print_setpoint = Setpoint / 10;
   print_input = Input / 10;

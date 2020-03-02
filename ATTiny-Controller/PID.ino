@@ -12,7 +12,6 @@ int PID(int val_SET, int val_IN)
   int val_OUT = 0; /*Scrittura convertitore D/A: scrive la variabile di uscita*/
   int error = 0; /*differenza tra valore di consegna e valore reale */
 
-  float I_inst = 0; /* parte istantanea del processo di integrazione*/
   float Out = 0; /* Totale regolazione */
 
   error = val_SET - val_IN;
@@ -20,8 +19,7 @@ int PID(int val_SET, int val_IN)
 
   if (Ki > 0)
   {
-    I_inst = error * Ki;
-    I = I + I_inst;
+    I = I + error * Ki;
   }
 
   else
