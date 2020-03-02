@@ -63,7 +63,7 @@ void initTIMER1()
 }
 
 
-ISR(TIM0_COMPA_vect)
+ISR(TIM0_COMPA_vect) //Every 2ms
 {
     if (Timer0_cont >= 5)
     {
@@ -71,6 +71,7 @@ ISR(TIM0_COMPA_vect)
         Timer0_cont = 0;
     }
 
+    myMillis += 2;
     delay_cont ++;
     Timer0_cont ++;
 }

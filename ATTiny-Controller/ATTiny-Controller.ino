@@ -25,7 +25,7 @@ const unsigned char solder_logo [] PROGMEM = {
 };
 
 char buff[20];
-unsigned long last_time, delay_cont;
+unsigned long last_time, delay_cont, myMillis;
 int print_setpoint, print_input, print_output;
 int Timer0_cont;
 #define REFRESH_TIME_MS 150
@@ -108,16 +108,17 @@ void initDISPLAY()
 	//  oled.drawImage(solder_logo, 62, 2, 61, 6);  //immagine, x, y, n° byte x, n° colonne byte
 	delay(1500);
 
+  last_time = myMillis;
 	oled.clear();
 }
 
 void myDelay(int delay_time)
 {
+  delay_cont = 0;
   while((delay_cont * 2) < delay_time)
   {
     sei();
   }
-  delay_cont = 0;
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
@@ -157,29 +158,33 @@ void loop()
   print_input = Input / 10;
   
 //stampo parametri ogni "REFRESH_TIME_MS"                                                                                                                            
- 
-  sprintf(buff, "Setpoint: %3d  ", print_setpoint);
-  oled.cursorTo(5, 1);
-  oled.printString(buff);
+  if(myMillis - last_time <= REFRESH_TIME_MS)
+  {
+    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
+    oled.cursorTo(5, 1);
+    oled.printString(buff);
 
-  sprintf(buff, "Input: %3d  ", print_input);
-  oled.cursorTo(5, 2);
-  oled.printString(buff);
+    sprintf(buff, "Input: %3d  ", print_input);
+    oled.cursorTo(5, 2);
+    oled.printString(buff);
 
-  sprintf(buff, "Output: %3d  ", print_output);
-  oled.cursorTo(5, 3);
-  oled.printString(buff);
+    sprintf(buff, "Output: %3d  ", print_output);
+    oled.cursorTo(5, 3);
+    oled.printString(buff);
 
-  int temp_kp = int(P);
-  int temp_ki = int(I);
-  int temp_kd = int(D);
-  sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
-  oled.cursorTo(5, 4);
-  oled.printString(buff);
+    int temp_kp = int(P);
+    int temp_ki = int(I);
+    int temp_kd = int(D);
+    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
+    oled.cursorTo(5, 4);
+    oled.printString(buff);
 
-  sprintf(buff, "D:%5d", temp_kd);
-  oled.cursorTo(5, 5);
-  oled.printString(buff);
-    
+    sprintf(buff, "D:%5d", temp_kd);
+    oled.cursorTo(5, 5);
+    oled.printString(buff);
+
+    last_time = myMillis;
+  }
+  
   wdt_reset();
 }
