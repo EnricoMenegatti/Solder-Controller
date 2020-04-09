@@ -67,7 +67,15 @@ ISR(TIM0_COMPA_vect) //Every 2ms
 {
     if (Timer0_cont >= 5)
     {
-        OCR1A = PID(Setpoint, Input); //Write PWM value
+        if (Setpoint < Input - TEMPERATURE_GAP)
+            Output = 0;
+
+        else if (Setpoint > Input + TEMPERATURE_GAP)
+            Output = 255;
+
+        else
+            OCR1A = PID(Setpoint, Input); //Write PWM value
+        
         Timer0_cont = 0;
     }
 

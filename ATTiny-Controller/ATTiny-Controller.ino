@@ -60,7 +60,7 @@ int SETPOINT_ADD = 1940;
 int ADC_raw, ADC_CMD, ADC_TEMP;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 200
+#define TEMPERATURE_GAP 150
 
 int Upper_PID_limit = 255;
 int Lower_PID_limit = 0;
