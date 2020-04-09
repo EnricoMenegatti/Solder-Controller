@@ -57,39 +57,17 @@ int SETPOINT_ADD = 1940;
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
 
-
 int ADC_raw, ADC_CMD, ADC_TEMP;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 300
-
-//Formula retta per scalatura preset del PID
-//Y = mX + q
-//     X  -  Y
-//1. 2000 - 50
-//2. 3500 - 75
-//m = dy / dx = 0.01667
-//q = (x2y1 - x1y2) / (x2 - x1) = 16.6667
-float PID_Preset_MUL = 0.01667;
-int PID_Preset_ADD = 17;
-
-//Formula retta per scalatura il Kp
-//Y = mX + q
-//     X  -  Y
-//1.   5  - 0.2
-//2.  15  - 0.5
-//m = dy / dx = 0.03
-//q = (x2y1 - x1y2) / (x2 - x1) = 0.05
-float KP_MUL = 0.2;
-float KP_ADD = 0.3;
+#define TEMPERATURE_GAP 200
 
 int Upper_PID_limit = 255;
 int Lower_PID_limit = 0;
-int PID_Preset;
 
 float Kp = 0.5;
-float Ki = 0; //0.001; TEST RIMOZIONE D PERCHE' SECONDO FLAVIO NON NECESSARIO
-float Kd = 0; //0.3; TEST RIMOZIONE D PERCHE' SECONDO FLAVIO PORTA DISTURBI
+float Ki = 0.001;
+float Kd = 0.3;
 
 float P, I, D;
 
@@ -105,20 +83,19 @@ void initDISPLAY()
 	oled.clear();
 
 	oled.drawImage(solder_logo, 5, 2, 123, 6); //immagine, x, y, n° byte x, n° colonne byte
-	//  oled.drawImage(solder_logo, 62, 2, 61, 6); //immagine, x, y, n° byte x, n° colonne byte
 	delay(1500);
 
-  last_time = myMillis;
+  	last_time = myMillis;
 	oled.clear();
 }
 
 void myDelay(int delay_time)
 {
-  delay_cont = 0;
-  while((delay_cont * 2) < delay_time)
-  {
-    sei();
-  }
+	delay_cont = 0;
+	while((delay_cont * 2) < delay_time)
+	{
+		sei();
+	}
 }
 
 //SETUP--------------------------------------------------------------------------------------------------------------------
@@ -134,58 +111,51 @@ void setup()
 	initTIMER0();
 	initTIMER1();
   
-  wdt_enable(WDTO_1S);
+	wdt_enable(WDTO_1S);
 	sei(); //enable interrupts
 }
 
 //MAIN---------------------------------------------------------------------------------------------------------------------
 void loop()
 {
-  readADC();
-  Setpoint = (SETPOINT_MUL * ADC_CMD) + SETPOINT_ADD;
-  if(Setpoint < 2000) Setpoint = 2000;
-  if(Setpoint > 4500) Setpoint = 4500;
+	readADC();
+	Setpoint = (SETPOINT_MUL * ADC_CMD) + SETPOINT_ADD;
+	if(Setpoint < 2000) Setpoint = 2000;
+	if(Setpoint > 4500) Setpoint = 4500;
 
-//calcolo il preset del PID per garantire un valore minimo adeguato in output
-  PID_Preset = int(PID_Preset_MUL * Setpoint) + PID_Preset_ADD;
+	Input = int(INPUT_MUL * ADC_TEMP) + INPUT_ADD;
 
-  Input = int(INPUT_MUL * ADC_TEMP) + INPUT_ADD;
+	print_setpoint = Setpoint / 10;
+	print_input = Input / 10;
 
-//calcolo il KP in modo dinamico a seconda della distanza dal setpoint
-  Kp = (KP_MUL * abs(Setpoint - Input)) + KP_ADD;
-  if(Kp > 10) Kp = 10;
+	//stampo parametri ogni "REFRESH_TIME_MS"                                                                                                                            
+	if(myMillis - last_time <= REFRESH_TIME_MS)
+	{
+		sprintf(buff, "Setpoint: %3d  ", print_setpoint);
+		oled.cursorTo(5, 1);
+		oled.printString(buff);
 
-  print_setpoint = Setpoint / 10;
-  print_input = Input / 10;
-  
-//stampo parametri ogni "REFRESH_TIME_MS"                                                                                                                            
-  if(myMillis - last_time <= REFRESH_TIME_MS)
-  {
-    sprintf(buff, "Setpoint: %3d  ", print_setpoint);
-    oled.cursorTo(5, 1);
-    oled.printString(buff);
+		sprintf(buff, "Input: %3d  ", print_input);
+		oled.cursorTo(5, 2);
+		oled.printString(buff);
 
-    sprintf(buff, "Input: %3d  ", print_input);
-    oled.cursorTo(5, 2);
-    oled.printString(buff);
+		sprintf(buff, "Output: %3d  ", print_output);
+		oled.cursorTo(5, 3);
+		oled.printString(buff);
 
-    sprintf(buff, "Output: %3d  ", print_output);
-    oled.cursorTo(5, 3);
-    oled.printString(buff);
+		int temp_kp = int(P);
+		int temp_ki = int(I);
+		int temp_kd = int(D);
+		sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
+		oled.cursorTo(5, 4);
+		oled.printString(buff);
 
-    int temp_kp = int(P);
-    int temp_ki = int(I);
-    int temp_kd = int(D);
-    sprintf(buff, "P:%5d I:%5d", temp_kp, temp_ki);
-    oled.cursorTo(5, 4);
-    oled.printString(buff);
+		sprintf(buff, "D:%5d", temp_kd);
+		oled.cursorTo(5, 5);
+		oled.printString(buff);
 
-    sprintf(buff, "D:%5d", temp_kd);
-    oled.cursorTo(5, 5);
-    oled.printString(buff);
+		last_time = myMillis;
+	}
 
-    last_time = myMillis;
-  }
-  
-  wdt_reset();
+	wdt_reset();
 }
