@@ -41,7 +41,7 @@ int Timer0_cont;
 //2. 760 - 495
 //m = dy / dx = 1.148
 //q = (x2y1 - x1y2) / (x2 - x1) = -377.526
-float INPUT_MUL = 45.92;//valore moltiplicato 40 perchè portata precisione da 10bit a 8
+float INPUT_MUL = 11.48;
 int INPUT_ADD = -3770;
 
 //Formula retta per scalatura temperatura di comando
@@ -51,23 +51,23 @@ int INPUT_ADD = -3770;
 //2.1000 - 450
 //m = dy / dx = 0.2559
 //q = (x2y1 - x1y2) / (x2 - x1) = 194.1146
-float SETPOINT_MUL = 10.236;//valore moltiplicato 40 perchè portata precisione da 10bit a 8
+float SETPOINT_MUL = 2.559;
 int SETPOINT_ADD = 1940;
 
 #define ADC_CMD_pin A2
 #define ADC_TEMP_pin A3
 
-int ADC_raw, ADC_CMD, ADC_TEMP;
+int temp_adc, ADC_raw, ADC_CMD, ADC_TEMP;
 
 //PID----------------------------------------------------------------------------------------------------------------------
-#define TEMPERATURE_GAP 150
+#define TEMPERATURE_GAP 200
 
 int Upper_PID_limit = 255;
 int Lower_PID_limit = 0;
 
-float Kp = 0.5;
+float Kp = 0.4;
 float Ki = 0.001;
-float Kd = 0.3;
+float Kd = 0.2;
 
 float P, I, D;
 
@@ -127,6 +127,7 @@ void loop()
 
 	print_setpoint = Setpoint / 10;
 	print_input = Input / 10;
+  print_output = OCR1A;
 
 	//stampo parametri ogni "REFRESH_TIME_MS"                                                                                                                            
 	if(myMillis - last_time <= REFRESH_TIME_MS)

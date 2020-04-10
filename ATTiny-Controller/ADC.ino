@@ -2,7 +2,7 @@ void initADC()
 {
   	ADMUX = (0 << REFS1) | //VCC used as Voltage Reference
   			(0 << REFS0) | //VCC used as Voltage Reference
-  			(1 << ADLAR) | //ADC Left Adjust Result
+  			(0 << ADLAR) | //ADC Left Adjust Result
   			(0 << REFS2) | //VCC used as Voltage Reference
   			(0 << MUX3) | //Analog Channel
   			(0 << MUX2) | //Analog Channel
@@ -45,7 +45,8 @@ void readADC()
     switch (ADMUX & (1<<MUX0))
     {
       case 0: //ADC2 PB4
-        ADC_CMD = ADCH;
+        temp_adc = ADCL;
+        ADC_CMD = (ADCH << 8) | temp_adc;
 
   //Set MUX bit ADC3 PB3
         ADMUX |= (1 << MUX0);
@@ -56,7 +57,8 @@ void readADC()
         break;
 
       case 1: //ADC3 PB3
-        ADC_TEMP = ADCH;
+        temp_adc = ADCL;
+        ADC_TEMP = (ADCH << 8) | temp_adc;
 
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
@@ -68,7 +70,9 @@ void readADC()
         break;
 
       default:
-        ADC_raw = ADCH;
+        temp_adc = ADCL;
+        ADC_raw = (ADCH << 8) | temp_adc;
+
         //Set MUX bit ADC2 PB4
         ADMUX |= (1 << MUX1);
         ADMUX &=~ (1 << MUX0);
